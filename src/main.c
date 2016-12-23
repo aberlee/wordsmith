@@ -79,6 +79,9 @@ static inline bool setup(void) {
         return false;
     }
     
+    // Blender setup
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+    
     // Timer setup
     if (!(timer = al_create_timer(1.0 / FRAME_RATE))) {
         eprintf("Failed to create timer.\n");
