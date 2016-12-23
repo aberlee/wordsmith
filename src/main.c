@@ -15,6 +15,10 @@
 
 // Allegro
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_image.h>
+#include <allegro5/allegro_primitives.h>
 
 // Debugging libraries
 #include "debug.h"
@@ -61,6 +65,19 @@ static inline bool setup(void) {
         eprintf("Failed to initialize allegro.\n");
         return false;
     }
+    if (!al_install_audio()) {
+        eprintf("Failed to initialize allegro audio addon.\n");
+        return false;
+    }
+    al_init_font_addon();
+    if (!al_init_image_addon()) {
+        eprintf("Failed to initialize allegro image addon.\n");
+        return false;
+    }
+    if (!al_init_primitives_addon()) {
+        eprintf("Failed to initialize allegro primitives addon.\n");
+        return false;
+    }
     
     // Timer setup
     if (!(timer = al_create_timer(1.0 / FRAME_RATE))) {
@@ -98,6 +115,9 @@ static inline bool setup(void) {
  **************************************************************/
 static inline void draw(void) {
     al_clear_to_color(al_map_rgb(0, 0, 0));
+    al_draw_filled_rectangle(1, 1, 50, 80, al_map_rgba(255, 0, 0, 127));
+    
+    
     al_flip_display();
 }
 
