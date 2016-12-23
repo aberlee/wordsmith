@@ -94,6 +94,14 @@ static inline bool setup(void) {
 }
 
 /**********************************************************//**
+ * @brief Draws the screen.
+ **************************************************************/
+static inline void draw(void) {
+    al_clear_to_color(al_map_rgb(0, 0, 0));
+    al_flip_display();
+}
+
+/**********************************************************//**
  * @brief Program game loop function.
  * @return Whether the program should run again.
  **************************************************************/
@@ -104,8 +112,7 @@ static inline bool run(const ALLEGRO_EVENT *event) {
     case ALLEGRO_EVENT_TIMER:
         // Redraw the screen
         if (al_is_event_queue_empty(event_queue)) {
-            al_clear_to_color(al_map_rgb(0, 0, 0));
-            al_flip_display();
+            draw();
         }
         break;
     
@@ -114,7 +121,7 @@ static inline bool run(const ALLEGRO_EVENT *event) {
     
     default:
         eprintf("Unsupposted event received: %d\n", event->type);
-        break;
+        return false;
     }
     
     // Keep running
@@ -145,16 +152,14 @@ int main(int argc, char **argv) {
     
     // Game loop
     ALLEGRO_EVENT event;
-    ALLEGRO_TIMEOUT timeout;
-    al_init_timeout(&timeout, 0.06);
-    
-    // Fetch event
     bool running = true;
-    while (running && al_wait_for_event_until(event_queue, &event, &timeout)) {
+    while (running) {
+        // Get the next event
+        al_wait_for_event(event_queue, &event);
         running = run(&event);
     }
     
-    // Exit functions
+    // Exit function
     cleanup();
     return EXIT_SUCCESS;
 }
