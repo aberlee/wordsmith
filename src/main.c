@@ -58,8 +58,6 @@ static ALLEGRO_TIMER *timer = NULL;
  * @brief Draws the screen.
  **************************************************************/
 static void draw(void) {
-    al_clear_to_color(al_map_rgb(200, 200, 200));
-    
     FRAME first;
     first.x = 10;
     first.y = 10;
@@ -86,8 +84,6 @@ static void draw(void) {
     second.data = entries;
     second.flags = FRAME_OUTLINE;
     textframe_Draw(&second);
-    
-    al_flip_display();
 }
 
 /**********************************************************//**
@@ -115,6 +111,11 @@ static bool run(const ALLEGRO_EVENT *event) {
     // Keep running
     return true;
 }
+
+/**********************************************************//**
+ * @brief The test state.
+ **************************************************************/
+static const STATE INITIAL_STATE = { &draw, &run };
 
 /**********************************************************//**
  * @brief Program setup function.
@@ -197,17 +198,15 @@ static inline bool setup(void) {
     }
     theme.foreground = al_map_rgb(255, 255, 255);
     theme.background = al_map_rgba(0, 0, 0, 240);
-    theme.highlight = al_map_rgb(255, 128, 0);
+    theme.highlight = al_map_rgb(255, 127, 0);
+    theme.disabled = al_map_rgb(127, 127, 127);
     frame_SetTheme(&theme);
     
     // Start timer
     al_start_timer(timer);
     
     // Initial state
-    STATE initial;
-    initial.draw = &draw;
-    initial.run = &run;
-    if (!state_Push(&initial)) {
+    if (!state_Push(&INITIAL_STATE)) {
         eprintf("Failed to start initial state.\n");
         return false;
     }
