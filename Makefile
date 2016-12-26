@@ -30,7 +30,7 @@ IMPORTANT := $(MAKEFILE) README.md
 ALLEGRO_DIR := C:/lib/allegro/allegro
 INCLUDE += -I$(ALLEGRO_DIR)/include
 LIBRARY += -L$(ALLEGRO_DIR)/lib
-LFLAGS += -lallegro -lallegro_audio -lallegro_font -lallegro_image -lallegro_primitives
+LFLAGS += -lallegro -lallegro_audio -lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
 
 #=========== Build setup ===========#
 BUILD_DIR := build
