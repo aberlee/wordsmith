@@ -53,11 +53,11 @@ extern const THEME *frame_GetTheme(void);
  * of the frame's area.
  **************************************************************/
 typedef struct {
-    int x;      ///< The x-coordinate of the origin.
-    int y;      ///< The y-coordinate of the origin.
-    int width;  ///< The width of the area.
-    int height; ///< The height of the area.
-    int flags;  ///< Rendering configuration for the frame.
+    int x;          ///< The x-coordinate of the origin.
+    int y;          ///< The y-coordinate of the origin.
+    int width;      ///< The width of the area.
+    int height;     ///< The height of the area.
+    int flags;      ///< Rendering configuration for the frame.
 } FRAME;
 
 /// Flag to specify whether the frame should be outlined with
@@ -67,6 +67,34 @@ typedef struct {
 /// Flag to specify whether the frame should be drawn with a
 /// highlighted header box.
 #define FRAME_HEADER 2
+
+/**********************************************************//**
+ * @brief Sets the frame's width and height with respect
+ * to the outline and padding, so that the interior area of the
+ * frame is large enough for the given dimensions.
+ * @param frame: Pointer to a frame to modify.
+ * @param width: Width of the internal area.
+ * @param height: Height of the internal area.
+ **************************************************************/
+extern void frame_SetSize(FRAME *frame, int width, int height);
+
+/**********************************************************//**
+ * @brief Gets the coordinates where internal data should be
+ * drawn in the frame. This is the upper left corner.
+ * @param frame: The frame to inspect.
+ * @param xo: Output parameter for the x coordinate.
+ * @param yo: Output parameter for the y coordinate.
+ **************************************************************/
+extern void frame_GetStart(const FRAME *frame, int *xo, int *yo);
+
+/**********************************************************//**
+ * @brief Gets the coordinates where internal data should be
+ * drawn in the frame. This is the lower right corner.
+ * @param frame: The frame to inspect.
+ * @param xf: Output parameter for the x coordinate.
+ * @param yf: Output parameter for the y coordinate.
+ **************************************************************/
+extern void frame_GetEnd(const FRAME *frame, int *xf, int *yf);
 
 /**********************************************************//**
  * @brief Draws the frame on the screen using the current theme.
@@ -101,18 +129,17 @@ typedef struct {
  * of the frame's area.
  **************************************************************/
 typedef struct {
-    int x;                  ///< The x position of the frame.
-    int y;                  ///< The y position of the frame.
-    int maxWidth;           ///< The maximum width of any line of text.
-    int lines;              ///< The number of lines of text.
-    const TEXT_ENTRY *data; ///< The actual text to render.
-    int flags;              ///< Rendering flags for the frame.
+    int x;              ///< The x position of the frame.
+    int y;              ///< The y position of the frame.
+    int maxWidth;       ///< The maximum width of any line of text.
+    int lines;          ///< The number of lines of text.
+    TEXT_ENTRY *data;   ///< The actual text to render.
+    int flags;          ///< Rendering flags for the frame.
 } TEXT_FRAME;
 
-/// Using this flag instead of a maxWidth for a TEXT_FRAME will
-/// allow for dynamic computation of the frame width based on
-/// the content of the textData array.
-#define TEXT_FRAME_DYNAMIC_WIDTH -1
+/// Using this flag will allow for dynamic computation of the
+/// frame width based on the content of the textData array.
+#define FRAME_DYNAMIC_WIDTH 4
 
 /**********************************************************//**
  * @brief Draws the text frame and the text it contains based
@@ -126,19 +153,52 @@ extern void textframe_Draw(const TEXT_FRAME *frame);
  * @brief A frame for giving the user a selection of options.
  **************************************************************/
 typedef struct {
-    int x;
-    int y;
-    int maxWidth;
-    int maxLines;
-    const TEXT_ENTRY *data;
-    int scroll;
-    int cursor;
-    int selected;
-    int flags;
+    int x;              ///< The x position of the frame.
+    int y;              ///< The y position of the frame.
+    int maxWidth;       ///< The maximum width of any line of text.
+    int lines;          ///< The lines to display.
+    int maxLines;       ///< The actual number of lines.
+    TEXT_ENTRY *data;   ///< All the data in the menu.
+    int scroll;         ///< The index of the top entry displayed.
+    int cursor;         ///< The placement of the cursor relative to scrolling.
+    int flags;          ///< Rendering flags for the frame.
 } MENU;
 
+/// Defines whether the elements of the menu can loop around.
+#define FRAME_LOOP 8
+
+/// Defines whether the user can cancel the menu.
+#define FRAME_CANCEL 16
+
+// Menu running results. Results 0...n are valid indexes that
+// should be considered.
+#define MENU_CANCEL -2      ///< Cancel the menu (stop)
+#define MENU_CONTINUE -1    ///< Continue running the menu.
+
+/**********************************************************//**
+ * @brief Draws the menu on the screen using the current theme.
+ * @param menu: Pointer to the menu to draw.
+ **************************************************************/
 extern void menu_Draw(const MENU *menu);
-extern bool menu_Run(MENU *menu, const ALLEGRO_EVENT *event);
+
+/**********************************************************//**
+ * @brief Handles keyboard input for the given menu.
+ * @param menu: The menu being interacted with.
+ * @param event: The keyboard event to handle.
+ * @return The index of the selected entry on confirmation,
+ * or MENU_CANCEL if the menu was cancelled, otherwise
+ * MENU_CONTINUE if the menu should keep being interacted with.
+ **************************************************************/
+extern int menu_Run(MENU *menu, const ALLEGRO_EVENT *event);
+
+/**********************************************************//**
+ * @brief Initializes the cursor to the first menu entry.
+ * @param menu: Pointer to the menu to reset.
+ **************************************************************/
+static inline void menu_Reset(MENU *menu) {
+    menu->cursor = 0;
+    menu->scroll = 0;
+}
 
 /*============================================================*/
 #endif // _FRAME_H_

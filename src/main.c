@@ -68,7 +68,7 @@ static void draw(void) {
     
     TEXT_ENTRY entries[4];
     entries[0].text = "Hello";
-    entries[0].flags = 0;
+    entries[0].flags = ENTRY_SELECTED;
     entries[1].text = "World";
     entries[1].flags = ENTRY_DISABLED;
     entries[2].text = "Hello";
@@ -79,10 +79,10 @@ static void draw(void) {
     TEXT_FRAME second;
     second.x = 120;
     second.y = 10;
-    second.maxWidth = TEXT_FRAME_DYNAMIC_WIDTH;
+    second.maxWidth = -1;
     second.lines = 4;
     second.data = entries;
-    second.flags = FRAME_OUTLINE;
+    second.flags = FRAME_OUTLINE | FRAME_DYNAMIC_WIDTH;
     textframe_Draw(&second);
 }
 
