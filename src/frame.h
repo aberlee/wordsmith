@@ -17,11 +17,20 @@
  * @brief Stores global window color and font information.
  **************************************************************/
 typedef struct {
+    // Font elements
     const ALLEGRO_FONT *font;   ///< The font used to render text.
+    
+    // Colors
     ALLEGRO_COLOR foreground;   ///< The color of text and foreground elements.
     ALLEGRO_COLOR background;   ///< The background color used for frames.
     ALLEGRO_COLOR highlight;    ///< The highlight color for important information.
     ALLEGRO_COLOR disabled;     ///< Color for disabled text items.
+    
+    // Dimensions
+    int outline;    ///< Size of the outline.
+    int padding;    ///< Distance between the outline and the content.
+    int header;     ///< Size of the header bar.
+    int spacing;    ///< Distance between two lines of text.
 } THEME;
 
 /**********************************************************//**

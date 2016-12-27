@@ -13,19 +13,9 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_primitives.h>
 
-// Debugging libraries
-#include "debug.h"      // eprintf, assert
-
 // This project
+#include "debug.h"      // eprintf, assert
 #include "frame.h"      // FRAME
-
-/*============================================================*
- * Constants
- *============================================================*/
-#define OUTLINE_SIZE 1  // Width of an outline on the frame.
-#define PADDING_SIZE 2  // Space between the frame border and the content.
-#define HEADER_SIZE 4   // Height of the frame header.
-#define LINE_SPACING 2  // Space between two lines of text.
 
 /*============================================================*
  * Shared theme data
@@ -50,18 +40,18 @@ void frame_Draw(const FRAME *frame) {
     int yo = frame->y;
     
     // Determine the upper right
-    int xf = xo + frame->width + PADDING_SIZE;
+    int xf = xo + frame->width + theme.padding;
     if (frame->flags & FRAME_OUTLINE) {
-        xf += OUTLINE_SIZE;
+        xf += theme.outline;
     }
     
     // Determine the lower left
-    int yf = yo + frame->height + PADDING_SIZE;
+    int yf = yo + frame->height + theme.padding;
     if (frame->flags & FRAME_OUTLINE) {
-        yf += OUTLINE_SIZE;
+        yf += theme.outline;
     }
     if (frame->flags & FRAME_HEADER) {
-        yf += HEADER_SIZE;
+        yf += theme.header;
     }
     
     // Draw the frame background
@@ -69,18 +59,18 @@ void frame_Draw(const FRAME *frame) {
     
     // Draw the frame outline
     if (frame->flags & FRAME_OUTLINE) {
-        al_draw_rectangle(xo, yo, xf, yf, theme.foreground, OUTLINE_SIZE);
+        al_draw_rectangle(xo, yo, xf, yf, theme.foreground, theme.outline);
     }
     
     // Draw the frame header
     int hxf;
     if (frame->flags & FRAME_HEADER) {
         if (frame->flags & FRAME_OUTLINE) {
-            hxf = xf - OUTLINE_SIZE;
+            hxf = xf - theme.outline;
         } else {
             hxf = xf;
         }
-        al_draw_filled_rectangle(xo, yo, hxf, yo + HEADER_SIZE, theme.highlight);
+        al_draw_filled_rectangle(xo, yo, hxf, yo + theme.header, theme.highlight);
     }
 }
 
@@ -103,29 +93,29 @@ void textframe_Draw(const TEXT_FRAME *frame) {
                 fontWidth = temp;
             }
         }
-        base.width = fontWidth + PADDING_SIZE;
+        base.width = fontWidth + theme.padding;
     } else {
-        base.width = frame->maxWidth + PADDING_SIZE;
+        base.width = frame->maxWidth + theme.padding;
     }
     
     // Get the base frame height
     int fontHeight = al_get_font_line_height(theme.font);
-    base.height = (fontHeight + LINE_SPACING)*frame->lines - LINE_SPACING + PADDING_SIZE;
+    base.height = (fontHeight + theme.spacing)*frame->lines - theme.spacing + theme.padding;
     
     // Draw the base frame
     base.flags = frame->flags;
     frame_Draw(&base);
     
     // Determine the x range for the selection box
-    int xo = base.x + PADDING_SIZE;
+    int xo = base.x + theme.padding;
     int xf = base.x + base.width;
     
     // Determine the height of each item
-    int y = base.y + PADDING_SIZE;
+    int y = base.y + theme.padding;
     if (frame->flags & FRAME_HEADER) {
-        y += HEADER_SIZE;
+        y += theme.header;
     }
-    int dy = fontHeight + LINE_SPACING;
+    int dy = fontHeight + theme.spacing;
     
     // Draw all the text
     int allegroFlags = ALLEGRO_ALIGN_LEFT | ALLEGRO_ALIGN_INTEGER;

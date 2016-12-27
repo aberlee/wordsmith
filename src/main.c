@@ -200,6 +200,10 @@ static inline bool setup(void) {
     theme.background = al_map_rgba(0, 0, 0, 240);
     theme.highlight = al_map_rgb(255, 127, 0);
     theme.disabled = al_map_rgb(127, 127, 127);
+    theme.outline = 1;
+    theme.padding = 2;
+    theme.header = 4;
+    theme.spacing = 2;
     frame_SetTheme(&theme);
     
     // Start timer
