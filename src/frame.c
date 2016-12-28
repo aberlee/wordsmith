@@ -202,6 +202,22 @@ void textframe_Draw(const TEXT_FRAME *frame) {
 }
 
 /*============================================================*
+ * Menu reset
+ *============================================================*/
+void menu_Reset(MENU *menu) {
+    menu->cursor = 0;
+    menu->scroll = 0;
+    
+    // Zero out all the selections
+    for (int i = 0; i < menu->maxLines; i++) {
+        menu->data[i].flags &= ~ENTRY_SELECTED;
+    }
+    
+    // Select the current item only
+    menu->data[0].flags |= ENTRY_SELECTED;
+}
+
+/*============================================================*
  * Drawing menus
  *============================================================*/
 void menu_Draw(const MENU *menu) {

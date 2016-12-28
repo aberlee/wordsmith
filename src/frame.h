@@ -60,12 +60,12 @@ typedef struct {
     int flags;      ///< Rendering configuration for the frame.
 } FRAME;
 
-/// Flag to specify whether the frame should be outlined with
-/// the foreground color.
+/// @brief Flag to specify whether the frame should be
+/// outlined with the foreground color.
 #define FRAME_OUTLINE 1
 
-/// Flag to specify whether the frame should be drawn with a
-/// highlighted header box.
+/// @brief Flag to specify whether the frame should be drawn
+/// with a highlighted header box.
 #define FRAME_HEADER 2
 
 /**********************************************************//**
@@ -108,18 +108,18 @@ extern void frame_Draw(const FRAME *frame);
  * TEXT_FRAME.
  **************************************************************/
 typedef struct {
-    const char *text;
-    int flags;
+    const char *text;   ///< The text to display at this entry.
+    int flags;          ///< Entry flags.
 } TEXT_ENTRY;
 
-/// The text entry is disabled, and can't be selected.
+/// @brief The text entry is disabled, and can't be selected.
 #define ENTRY_DISABLED 1
 
-/// The text entry is special and should be highlighted.
+/// @brief The text entry is special and should be highlighted.
 #define ENTRY_HIGHLIGHT 2
 
-/// The text entry is selected and should be rendered in inverse,
-/// with a rectangle highlighting it from behind.
+/// @brief The text entry is selected and should be rendered
+/// in inverse, with a rectangle highlighting it from behind.
 #define ENTRY_SELECTED 4
 
 /**********************************************************//**
@@ -137,8 +137,8 @@ typedef struct {
     int flags;          ///< Rendering flags for the frame.
 } TEXT_FRAME;
 
-/// Using this flag will allow for dynamic computation of the
-/// frame width based on the content of the textData array.
+/// @brief Using this flag will allow for dynamic computation
+/// of the frame width based on the content of the data array.
 #define FRAME_DYNAMIC_WIDTH 4
 
 /**********************************************************//**
@@ -164,16 +164,22 @@ typedef struct {
     int flags;          ///< Rendering flags for the frame.
 } MENU;
 
-/// Defines whether the elements of the menu can loop around.
+/// @brief Defines whether the elements of the menu can loop around.
 #define FRAME_LOOP 8
 
-/// Defines whether the user can cancel the menu.
+/// @brief Defines whether the user can cancel the menu.
 #define FRAME_CANCEL 16
 
 // Menu running results. Results 0...n are valid indexes that
 // should be considered.
 #define MENU_CANCEL -2      ///< Cancel the menu (stop)
 #define MENU_CONTINUE -1    ///< Continue running the menu.
+
+/**********************************************************//**
+ * @brief Initializes the cursor to the first menu entry.
+ * @param menu: Pointer to the menu to reset.
+ **************************************************************/
+extern void menu_Reset(MENU *menu);
 
 /**********************************************************//**
  * @brief Draws the menu on the screen using the current theme.
@@ -190,15 +196,6 @@ extern void menu_Draw(const MENU *menu);
  * MENU_CONTINUE if the menu should keep being interacted with.
  **************************************************************/
 extern int menu_Run(MENU *menu, const ALLEGRO_EVENT *event);
-
-/**********************************************************//**
- * @brief Initializes the cursor to the first menu entry.
- * @param menu: Pointer to the menu to reset.
- **************************************************************/
-static inline void menu_Reset(MENU *menu) {
-    menu->cursor = 0;
-    menu->scroll = 0;
-}
 
 /*============================================================*/
 #endif // _FRAME_H_
