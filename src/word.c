@@ -7,6 +7,7 @@
 #include <stddef.h>     // size_t
 #include <stdbool.h>    // bool
 #include <string.h>     // strlen, strcpy
+#include <ctype.h>      // toupper
 
 // This project
 #include "debug.h"      // assert, eprintf
@@ -49,7 +50,7 @@ static const char LETTER_STATS[N_LETTERS] = {
  * @param letter: An uppercase or lowercase letter.
  * @return The stat associated to the letter or -1 on failure.
  **************************************************************/
-static STAT LetterStat(char letter) {
+static int LetterStat(char letter) {
     int index;
 
     // Try lower case
@@ -128,7 +129,7 @@ static const TECHNIQUE TECHNIQUE_TABLE[N_CODONS][N_STACKS] = {
  * previously in the word.
  * @return The technique or -1 on failure.
  **************************************************************/
-static TECHNIQUE CodonTechnique(int codon, int stacks) {
+static int CodonTechnique(int codon, int stacks) {
     
     // Error checking
     if (codon < 0 || codon >= N_CODONS) {
@@ -142,7 +143,7 @@ static TECHNIQUE CodonTechnique(int codon, int stacks) {
         return TECHNIQUE_TABLE[codon][PRIMARY];
         
     case ADVANCED:
-        return TECHNIQUE_TABLE[codon][PRIMARY];
+        return TECHNIQUE_TABLE[codon][ADVANCED];
     
     default:
         // Too many stacks applied, no further techniques!
@@ -158,16 +159,6 @@ static inline void word_UpdateStats(WORD *word) {
     for (int i = 0; i < N_STATS; i++) {
         word->stat[i] = (word->base[i]*(word->level + 5)) / 100;
     }
-}
-
-/**********************************************************//**
- * @brief Letter location weighting function.
- * @param location: Location of the letter.
- * @return The base stat points allocated for the letter.
- * This must be positive!
- **************************************************************/
-static inline int WeightLocation(int location) {
-    return MAX_WORD_LENGTH - location;
 }
 
 /**********************************************************//**
@@ -190,7 +181,11 @@ bool word_Create(WORD *word, const char *text, int level) {
         eprintf("The word \"%s\" is of invalid length.\n", text);
         return false;
     }
-    strncpy(word->text, text, length);
+    
+    // Convert entire word to uppercase
+    for (int i = 0; i < length; i++) {
+        word->text[i] =toupper(text[i]);
+    }
     word->text[length] = '\0';
     
     // Set level
@@ -205,14 +200,14 @@ bool word_Create(WORD *word, const char *text, int level) {
     // earlier in the word having more weight. After this is
     // completed, the word certainly contains only valid stats.
     int acc[N_STATS] = {1, 1, 1, 1};
-    STAT stat;
+    int stat;
     for (int i = 0; i < length; i++) {
         // Weight each letter according to its position in the word
         if ((stat = LetterStat(text[i])) < 0) {
             eprintf("Invalid stat discovered: %d\n", stat);
             return false;
         }
-        acc[stat] += WeightLocation(i);
+        acc[stat] += 1;
     }
     
     // Scale base stat totals (balancing)
@@ -224,7 +219,7 @@ bool word_Create(WORD *word, const char *text, int level) {
     int baseStat;
     for (int i = 0; i < N_STATS; i++) {
         // Multiply first to avoid truncation errors
-        baseStat = (acc[i] * 100) / statAverage;
+        baseStat = (acc[i] * 255) / statAverage;
         if (baseStat > MAX_STAT) {
             baseStat = MAX_STAT;
         } else if (baseStat < MIN_STAT) {
@@ -233,13 +228,17 @@ bool word_Create(WORD *word, const char *text, int level) {
         word->base[i] = baseStat;
     }
     
-    // Find all techniques the word can learn
+    // Set up codon reading
     int codon;
     int codonStacks[N_CODONS];
-    memset(codonStacks, PRIMARY, sizeof(codonStacks));
+    for (int i = 0; i < N_CODONS; i++) {
+        codonStacks[i] = PRIMARY;
+    }
+    
+    // Read all codons
     int first, second = LetterStat(text[0]);
     int index;
-    TECHNIQUE tech;
+    int tech;
     word->nTechs = 0;
     for (int i = 1; i < length && word->nTechs < MAX_TECHNIQUES; i++) {
         // Read the next codon (loop if invalid)

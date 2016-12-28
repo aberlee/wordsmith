@@ -9,6 +9,7 @@
 #include <string.h>     // strcmp
 
 // This project
+#include "debug.h"      // assert, eprintf
 #include "word.h"       // WORD
 #include "technique.h"  // TECHNIQUE_DATA
 
@@ -24,7 +25,7 @@ int main(int argc, char **argv) {
     
     // Arguments check
     if (argc == 1 || !strcmp(argv[1], "-h")) {
-        printf("Usage: %s word [level]?\n", argv[0]);
+        eprintf("Usage: %s word [level]?\n", argv[0]);
         return EXIT_FAILURE;
     }
     if (argc > 1) {
@@ -38,7 +39,7 @@ int main(int argc, char **argv) {
     
     // Create the word.
     if (!word_Create(&word, text, level)) {
-        printf("Failed to make the word.\n");
+        eprintf("Failed to make the word.\n");
         return EXIT_FAILURE;
     }
     
