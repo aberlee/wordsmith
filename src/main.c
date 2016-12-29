@@ -21,12 +21,12 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 
-// Debugging libraries
-#include "debug.h"
-
 // This project
-#include "state.h"
-#include "frame.h"
+#include "debug.h"      // eprintf, assert
+#include "state.h"      // STATE
+#include "frame.h"      // frame_Draw
+#include "word.h"       // WORD
+#include "word_sprite.h"// WORD_SPRITE
 
 /*============================================================*
  * Display window
@@ -46,7 +46,7 @@ static ALLEGRO_DISPLAY *display = NULL;
  *============================================================*/
 
 /// The frame rate of the game.
-#define FRAME_RATE 60.0
+#define FRAME_RATE 60
 
 /// The event queue used by allegro.
 static ALLEGRO_EVENT_QUEUE *event_queue = NULL;
@@ -58,6 +58,9 @@ static ALLEGRO_TIMER *timer = NULL;
  * @brief Draws the screen.
  **************************************************************/
 static void draw(void) {
+    static int frame = 0;
+    frame++;
+    
     FRAME first;
     first.x = 10;
     first.y = 10;
@@ -84,6 +87,17 @@ static void draw(void) {
     second.data = entries;
     second.flags = FRAME_OUTLINE | FRAME_DYNAMIC_WIDTH;
     textframe_Draw(&second);
+    
+    WORD word;
+    word_Create(&word, "Test", 100);
+    
+    WORD_SPRITE sprite;
+    word_LoadSprite(&sprite, &word);
+    sprite.xOrigin = 300;
+    sprite.yOrigin = 150;
+    
+    word_AnimateIdle(&sprite, frame*8);
+    word_DrawSprite(&sprite);
 }
 
 /**********************************************************//**
@@ -205,6 +219,14 @@ static inline bool setup(void) {
     theme.header = 4;
     theme.spacing = 2;
     frame_SetTheme(&theme);
+    
+    // Set up word font
+    ALLEGRO_FONT *wordFont = al_load_ttf_font("data/font/Standard2.ttf", 32, ALLEGRO_TTF_MONOCHROME);
+    if (!wordFont) {
+        eprintf("Failed to load the word font.\n");
+        return false;
+    }
+    word_SetFont(wordFont, 16);
     
     // Start timer
     al_start_timer(timer);
