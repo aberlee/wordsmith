@@ -47,26 +47,46 @@ extern void frame_SetTheme(const THEME *theme);
 extern const THEME *frame_GetTheme(void);
 
 /**********************************************************//**
+ * @enum FRAME_FLAG
+ * @brief Enumeration of all the rendering flags used on 
+ * frames defined in this module.
+ **************************************************************/
+typedef enum {
+    /// @brief Flag to specify whether the frame should be
+    /// outlined with the foreground color.
+    FRAME_OUTLINE=1,
+    
+    /// @brief Flag to specify whether the frame should be
+    /// drawn with a highlighted header box.
+    FRAME_HEADER=2,
+    
+    /// @brief Using this flag will allow for dynamic
+    /// computation of the frame width based on the content
+    /// of the data array.
+    FRAME_DYNAMIC_WIDTH=4,
+    
+    /// @brief Defines whether the elements of the menu can
+    /// loop around.
+    FRAME_LOOP=8,
+    
+    /// @brief Defines whether the user can cancel the menu.
+    FRAME_CANCEL=16,
+    
+} FRAME_FLAG;
+
+/**********************************************************//**
  * @struct FRAME
  * @brief Stores the configuration for one graphics frame on
  * the screen. The graphics are guaranteed not to extend out
  * of the frame's area.
  **************************************************************/
 typedef struct {
-    int x;          ///< The x-coordinate of the origin.
-    int y;          ///< The y-coordinate of the origin.
-    int width;      ///< The width of the area.
-    int height;     ///< The height of the area.
-    int flags;      ///< Rendering configuration for the frame.
+    int x;              ///< The x-coordinate of the origin.
+    int y;              ///< The y-coordinate of the origin.
+    int width;          ///< The width of the area.
+    int height;         ///< The height of the area.
+    FRAME_FLAG flags;   ///< Rendering configuration for the frame.
 } FRAME;
-
-/// @brief Flag to specify whether the frame should be
-/// outlined with the foreground color.
-#define FRAME_OUTLINE 1
-
-/// @brief Flag to specify whether the frame should be drawn
-/// with a highlighted header box.
-#define FRAME_HEADER 2
 
 /**********************************************************//**
  * @brief Sets the frame's width and height with respect
@@ -103,24 +123,31 @@ extern void frame_GetEnd(const FRAME *frame, int *xf, int *yf);
 extern void frame_Draw(const FRAME *frame);
 
 /**********************************************************//**
+ * @enum ENTRY_FLAG
+ * @brief Enumeration of all the rendering flags used on 
+ * TEXT_ENTRY structures.
+ **************************************************************/
+typedef enum {
+    /// @brief The text entry is disabled, and can't be selected.
+    ENTRY_DISABLED=1,
+
+    /// @brief The text entry is special and should be highlighted.
+    ENTRY_HIGHLIGHT=2,
+
+    /// @brief The text entry is selected and should be rendered
+    /// in inverse, with a rectangle highlighting it from behind.
+    ENTRY_SELECTED=4,
+} ENTRY_FLAG;
+
+/**********************************************************//**
  * @struct TEXT_ENTRY
  * @brief Stores setting for one element of text in a
  * TEXT_FRAME.
  **************************************************************/
 typedef struct {
     const char *text;   ///< The text to display at this entry.
-    int flags;          ///< Entry flags.
+    ENTRY_FLAG flags;   ///< Entry flags.
 } TEXT_ENTRY;
-
-/// @brief The text entry is disabled, and can't be selected.
-#define ENTRY_DISABLED 1
-
-/// @brief The text entry is special and should be highlighted.
-#define ENTRY_HIGHLIGHT 2
-
-/// @brief The text entry is selected and should be rendered
-/// in inverse, with a rectangle highlighting it from behind.
-#define ENTRY_SELECTED 4
 
 /**********************************************************//**
  * @struct TEXT_FRAME
@@ -134,12 +161,8 @@ typedef struct {
     int maxWidth;       ///< The maximum width of any line of text.
     int lines;          ///< The number of lines of text.
     TEXT_ENTRY *data;   ///< The actual text to render.
-    int flags;          ///< Rendering flags for the frame.
+    FRAME_FLAG flags;   ///< Rendering flags for the frame.
 } TEXT_FRAME;
-
-/// @brief Using this flag will allow for dynamic computation
-/// of the frame width based on the content of the data array.
-#define FRAME_DYNAMIC_WIDTH 4
 
 /**********************************************************//**
  * @brief Draws the text frame and the text it contains based
@@ -161,14 +184,8 @@ typedef struct {
     TEXT_ENTRY *data;   ///< All the data in the menu.
     int scroll;         ///< The index of the top entry displayed.
     int cursor;         ///< The placement of the cursor relative to scrolling.
-    int flags;          ///< Rendering flags for the frame.
+    FRAME_FLAG flags;   ///< Rendering flags for the frame.
 } MENU;
-
-/// @brief Defines whether the elements of the menu can loop around.
-#define FRAME_LOOP 8
-
-/// @brief Defines whether the user can cancel the menu.
-#define FRAME_CANCEL 16
 
 // Menu running results. Results 0...n are valid indexes that
 // should be considered.
