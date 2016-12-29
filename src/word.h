@@ -23,7 +23,7 @@
 #define MAX_TECHNIQUES 4
 
 // Word length bounds
-#define MIN_WORD_LENGTH 1   ///< Length of the smallest word
+#define MIN_WORD_LENGTH 2   ///< Length of the smallest word
 #define MAX_WORD_LENGTH 16  ///< Length of the longest word.
 
 // Word level range
@@ -59,11 +59,11 @@ typedef enum {
 typedef struct {
     // Constant properties
     char text[MAX_WORD_LENGTH+1];   ///< Actual text of the word
-    int base[N_STATS];              ///< Constant base stats.
     TECHNIQUE techs[MAX_TECHNIQUES];///< Techniques known.
-    int nTechs; ///< Number of techniques.
-    int rank;   ///< Rank of the word.
-    int bounty; ///< Experience this word is worth.
+    int base[N_STATS];  ///< Constant base stats.
+    int nTechs;         ///< Number of techniques.
+    int rank;           ///< Rank of the word.
+    int bounty;         ///< Experience this word is worth.
     
     // Current stats (recalculate on level up)
     int level;          ///< Level of the word

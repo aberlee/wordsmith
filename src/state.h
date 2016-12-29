@@ -8,7 +8,7 @@
 #define _STATE_H_
 
 // Standard library
-#include <stdbool.h>
+#include <stdbool.h>    // bool
 
 // Allegro
 #include <allegro5/allegro.h>

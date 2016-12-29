@@ -4,15 +4,18 @@
  * @brief Implements game state interface.
  **************************************************************/
 
+// Standard library
+#include <stdbool.h>    // bool
+
 // This project
-#include "state.h"
+#include "state.h"      // STATE
 
 /*============================================================*
  * State stack
  *============================================================*/
 #define STATE_STACK_SIZE 64             // Size of state stack
 static STATE stack[STATE_STACK_SIZE];   // The state stack.
-int current = -1;                       // Top of the state stack.
+static int current = -1;                // Top of the state stack.
 
 /*============================================================*
  * Changing to a new state
