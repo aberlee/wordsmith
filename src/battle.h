@@ -52,10 +52,11 @@ typedef enum {
     WORD_RETALIATE,   ///< Enemy damaged on attack
     WORD_REFLECT,     ///< Enemy attack bounced back
     WORD_DOUBLE_TP,   ///< Recover TP twice as fast
+    WORD_NO_ESCAPE,   ///< The word cannot switch out.
 } WORD_EFFECT;
 
 /// The number of different word effects.
-#define N_WORD_EFFECTS 13
+#define N_WORD_EFFECTS 10
 
 /**********************************************************//**
  * @enum FIELD_EFFECT
