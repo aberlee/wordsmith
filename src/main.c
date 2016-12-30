@@ -205,15 +205,15 @@ static inline bool setup(void) {
     
     // Set up theme
     THEME theme;
-    theme.font = al_load_ttf_font("data/font/Standard2.ttf", 16, ALLEGRO_TTF_MONOCHROME);
+    theme.font = al_load_ttf_font("data/font/wordsmith.ttf", 16, ALLEGRO_TTF_MONOCHROME);
     if (!theme.font) {
         eprintf("Failed to load the font.\n");
         return false;
     }
-    theme.foreground = al_map_rgb(255, 255, 255);
-    theme.background = al_map_rgba(0, 0, 0, 240);
-    theme.highlight = al_map_rgb(255, 127, 0);
-    theme.disabled = al_map_rgb(127, 127, 127);
+    theme.foreground = al_map_rgb(42, 42, 42);
+    theme.background = al_map_rgb(255, 255, 255);
+    theme.highlight = al_map_rgb(207, 82, 82);
+    theme.disabled = al_map_rgb(128, 128, 128);
     theme.outline = 1;
     theme.padding = 2;
     theme.header = 4;
@@ -221,7 +221,7 @@ static inline bool setup(void) {
     frame_SetTheme(&theme);
     
     // Set up word font
-    ALLEGRO_FONT *wordFont = al_load_ttf_font("data/font/Standard2.ttf", 32, ALLEGRO_TTF_MONOCHROME);
+    ALLEGRO_FONT *wordFont = al_load_ttf_font("data/font/wordsmith.ttf", 32, ALLEGRO_TTF_MONOCHROME);
     if (!wordFont) {
         eprintf("Failed to load the word font.\n");
         return false;
