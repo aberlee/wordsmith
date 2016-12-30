@@ -153,7 +153,7 @@ static int CodonTechnique(int codon, int stacks) {
 
 /**********************************************************//**
  * @brief Recompute the word's stats.
- * @param word: The word tp update.
+ * @param word: The word to update.
  **************************************************************/
 static inline void word_UpdateStats(WORD *word) {
     for (int i = 0; i < N_STATS; i++) {

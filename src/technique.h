@@ -80,7 +80,7 @@ typedef enum {
 } TECHNIQUE;
 
 /// Number of distinct techniques
-#define N_TECHNIQUES (SPECIAL+1)
+#define N_TECHNIQUES 37
 
 /**********************************************************//**
  * @struct TECHNIQUE_DATA

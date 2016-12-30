@@ -121,8 +121,8 @@ void word_LoadSprite(WORD_SPRITE *sprite, const WORD *word) {
 /*============================================================*
  * Word animation
  *============================================================*/
-#define IDLE_AMPLITUDE 8.0
-#define IDLE_PERIOD 20.0
+#define IDLE_AMPLITUDE 8.0  ///< Height of the letter animation.
+#define IDLE_PERIOD 20.0    ///< Curviness of the word as a whole.
 
 void word_AnimateIdle(WORD_SPRITE *sprite, int frame) {
     

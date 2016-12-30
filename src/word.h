@@ -50,7 +50,7 @@ typedef enum {
 } STAT;
 
 /// The total number of unique stats.
-#define N_STATS (SPEED+1)
+#define N_STATS 4
 
 /**********************************************************//**
  * @struct WORD
@@ -62,8 +62,6 @@ typedef struct {
     TECHNIQUE techs[MAX_TECHNIQUES];///< Techniques known.
     int base[N_STATS];  ///< Constant base stats.
     int nTechs;         ///< Number of techniques.
-    int rank;           ///< Rank of the word.
-    int bounty;         ///< Experience this word is worth.
     
     // Current stats (recalculate on level up)
     int level;          ///< Level of the word
