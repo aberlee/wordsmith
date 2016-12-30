@@ -47,6 +47,14 @@ extern void frame_SetTheme(const THEME *theme);
 extern const THEME *frame_GetTheme(void);
 
 /**********************************************************//**
+ * @brief Draws text using the current theme.
+ * @param x: The x coordinate of the text.
+ * @param y: The y coordinate of the text.
+ * @param text: The text to draw.
+ **************************************************************/
+extern void frame_DrawText(int x, int y, const char *text);
+
+/**********************************************************//**
  * @enum FRAME_FLAG
  * @brief Enumeration of all the rendering flags used on 
  * frames defined in this module.
@@ -163,6 +171,19 @@ typedef struct {
     TEXT_ENTRY *data;   ///< The actual text to render.
     FRAME_FLAG flags;   ///< Rendering flags for the frame.
 } TEXT_FRAME;
+
+/**********************************************************//**
+ * @brief Gets the height needed for the lines of text.
+ * @param lines: The number of lines of text.
+ * @return The height required foe the text frame.
+ **************************************************************/
+extern int frame_GetLineHeight(int lines);
+
+/**********************************************************//**
+ * @brief Gets the line spacing between two lines of text.
+ * @return The spacing distance.
+ **************************************************************/
+extern int frame_GetLineSpacing(void);
 
 /**********************************************************//**
  * @brief Draws the text frame and the text it contains based

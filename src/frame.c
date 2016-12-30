@@ -34,6 +34,25 @@ const THEME *frame_GetTheme(void) {
 }
 
 /*============================================================*
+ * Spacing data
+ *============================================================*/
+int frame_GetLineHeight(int lines) {
+    int fontHeight = al_get_font_line_height(theme.font);
+    return (fontHeight + theme.spacing)*lines - theme.spacing;
+}
+
+int frame_GetLineSpacing(void) {
+    return al_get_font_line_height(theme.font) + theme.spacing;
+}
+
+/// Rendering flags ofr the text.
+#define TEXT_FLAGS (ALLEGRO_ALIGN_LEFT | ALLEGRO_ALIGN_INTEGER)
+
+void frame_DrawText(int x, int y, const char *text) {
+    al_draw_text(theme.font, theme.foreground, x, y, TEXT_FLAGS, text);
+}
+
+/*============================================================*
  * Sizing frames
  *============================================================*/
 void frame_SetSize(FRAME *frame, int width, int height) {
@@ -116,7 +135,7 @@ void frame_Draw(const FRAME *frame) {
     if (frame->flags & FRAME_HEADER) {
         if (frame->flags & FRAME_OUTLINE) {
             hxo = xo + theme.outline / 2;
-            hxf = xf - theme.outline / 2;
+            hxf = xf - (theme.outline - theme.outline / 2);
             hyo = yo + theme.outline / 2;
             hyf = hyo + theme.header;
         } else {
@@ -171,7 +190,6 @@ void textframe_Draw(const TEXT_FRAME *frame) {
     
     // Determine other drawing parameters.
     int dy = fontHeight + theme.spacing;
-    int allegroFlags = ALLEGRO_ALIGN_LEFT | ALLEGRO_ALIGN_INTEGER;
     
     // Draw all the text
     int textFlags = 0;
@@ -193,9 +211,9 @@ void textframe_Draw(const TEXT_FRAME *frame) {
         // To center the text in the selection perfectly we need to add 1 to xo
         if (textFlags & ENTRY_SELECTED) {
             al_draw_filled_rectangle(xo, y, xf, y+fontHeight, color);
-            al_draw_text(theme.font, theme.background, xo+1, y, allegroFlags, frame->data[line].text);
+            al_draw_text(theme.font, theme.background, xo+1, y+1, TEXT_FLAGS, frame->data[line].text);
         } else {
-            al_draw_text(theme.font, color, xo+1, y, allegroFlags, frame->data[line].text);
+            al_draw_text(theme.font, color, xo+1, y+1, TEXT_FLAGS, frame->data[line].text);
         }
         y += dy;
     }
