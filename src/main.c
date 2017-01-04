@@ -93,7 +93,7 @@ static void draw(void) {
     textframe_Draw(&second);
     
     WORD word;
-    word_Create(&word, "Test", 100);
+    word_Create(&word, "abstruse", 100);
     word.hp /= 2;
     word.exp /= 2;
     
@@ -239,6 +239,12 @@ static inline bool setup(void) {
     // Set up background color
     background = al_map_rgb(200, 200, 200);
     
+    // Set up real word table
+    if (!word_LoadTable("data/english.txt")) {
+        eprintf("Failed to load the real word table.\n");
+        return false;
+    }
+    
     // Initial state
     if (!state_Push(&INITIAL_STATE)) {
         eprintf("Failed to start initial state.\n");
@@ -256,6 +262,7 @@ static inline bool setup(void) {
  **************************************************************/
 static inline void cleanup(void) {
     // Destroy resources
+    word_DestroyTable();
     al_destroy_display(display);
     al_destroy_event_queue(event_queue);
 }

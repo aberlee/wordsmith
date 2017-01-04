@@ -67,6 +67,12 @@ void word_DrawHud(const WORD *word, int x, int y, bool inDepth) {
         assert(hudExp = al_load_bitmap("data/image/hud_exp.png"));
     }
     
+    // Real word marker
+    static ALLEGRO_BITMAP *realWord = NULL;
+    if (realWord == NULL) {
+        assert(realWord = al_load_bitmap("data/image/real.png"));
+    }
+    
     // Choose whether to draw experience or not
     if (inDepth) {
         al_draw_bitmap(hudExp, x, y, 0);
@@ -97,6 +103,11 @@ void word_DrawHud(const WORD *word, int x, int y, bool inDepth) {
     char healthString[8];
     sprintf(healthString, "%d/%d", word->hp, word->stat[MAXHP]);
     frame_DrawOutlinedText(x+7, y+19, healthString);
+    
+    // Draw the real word symbol
+    if (word->isReal) {
+        al_draw_bitmap(realWord, x+137, y+20, 0);
+    }
     
     // Draw the word's experience bar
     if (inDepth) {

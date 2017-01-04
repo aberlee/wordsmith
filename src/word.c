@@ -7,13 +7,30 @@
 #include <stddef.h>     // size_t
 #include <stdbool.h>    // bool
 #include <string.h>     // strlen, strcpy
-#include <ctype.h>      // toupper
+#include <ctype.h>      // tolower
 
 // This project
 #include "debug.h"      // assert, eprintf
 #include "word.h"       // WORD
 #include "technique.h"  // TECHNIQUE
+#include "word_table.h" // WORD_TABLE
 
+/*============================================================*
+ * Word table
+ *============================================================*/
+static WORD_TABLE words = WORD_TABLE_INITIALIZER;
+
+bool word_LoadTable(const char *filename) {
+    return wordtable_Load(&words, filename);
+}
+
+void word_DestroyTable(void) {
+    wordtable_Destroy(&words);
+}
+
+/*============================================================*
+ * Letter stat table
+ *============================================================*/
 /// Maps each letter (0-25) to the stat it's associated with.
 static const char LETTER_STATS[N_LETTERS] = {
     MAXHP,  // A
@@ -156,8 +173,9 @@ static int CodonTechnique(int codon, int stacks) {
  * @param word: The word to update.
  **************************************************************/
 static inline void word_UpdateStats(WORD *word) {
+    int modifier = word->isReal ? 10 : 5;
     for (int i = 0; i < N_STATS; i++) {
-        word->stat[i] = (word->base[i]*(word->level + 5)) / 100;
+        word->stat[i] = (word->base[i]*(word->level + modifier)) / 100;
     }
 }
 
@@ -182,11 +200,14 @@ bool word_Create(WORD *word, const char *text, int level) {
         return false;
     }
     
-    // Convert entire word to uppercase
+    // Convert entire word to lowercase
     for (int i = 0; i < length; i++) {
-        word->text[i] =toupper(text[i]);
+        word->text[i] = tolower(text[i]);
     }
     word->text[length] = '\0';
+    
+    // Check if this is a real word
+    word->isReal = wordtable_Contains(&words, word->text);
     
     // Set level
     if (level < MIN_LEVEL || level > MAX_LEVEL) {
