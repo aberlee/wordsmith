@@ -240,7 +240,7 @@ static inline bool setup(void) {
     background = al_map_rgb(200, 200, 200);
     
     // Set up real word table
-    if (!word_LoadTable("data/english.txt")) {
+    if (!word_LoadTable("data/words/english.txt")) {
         eprintf("Failed to load the real word table.\n");
         return false;
     }
