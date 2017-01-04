@@ -19,9 +19,6 @@
 #include "word.h"       // WORD
 #include "word_sprite.h"// WORD_SPRITE
 
-// Math constant PI
-#define PI 3.1415926535897932384626433832795
-
 /*============================================================*
  * Word font setup
  *============================================================*/
@@ -129,7 +126,8 @@ void word_AnimateIdle(WORD_SPRITE *sprite, int frame) {
     // Set the idle frame animation
     double theta;
     for (int i = 0; i < sprite->nLetters; i++) {
-        theta = (double)(frame + i*IDLE_PERIOD) / 180 * PI;
+        // 4*atan(1.0) is PI
+        theta = (double)(frame + i*IDLE_PERIOD) / 180 * 4*atan(1.0);
         sprite->letters[i].yOffset = IDLE_AMPLITUDE*sin(theta);
     }
 }
