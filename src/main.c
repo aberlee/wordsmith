@@ -27,6 +27,7 @@
 #include "frame.h"      // frame_Draw
 #include "word.h"       // WORD
 #include "word_sprite.h"// WORD_SPRITE
+#include "word_frame.h" // word_DrawHud
 
 /*============================================================*
  * Display window
@@ -101,6 +102,8 @@ static void draw(void) {
     
     word_AnimateIdle(&sprite, frame*8);
     word_DrawSprite(&sprite);
+    
+    word_DrawHud(&word, 300, 10, true);
 }
 
 /**********************************************************//**

@@ -265,7 +265,7 @@ bool word_Create(WORD *word, const char *text, int level) {
     }
     
     // Initialize stats
-    word->exp = ExperienceNeeded(level);
+    word->expNeed = word->exp = ExperienceNeeded(level);
     word_UpdateStats(word);
     word->hp = word->stat[MAXHP];
     return true;
@@ -295,7 +295,7 @@ void word_ChangeExperience(WORD *word, int delta) {
     word->exp -= delta;
     while (word->exp < 0) {
         word->level++;
-        word->exp += ExperienceNeeded(word->level);
+        word->exp += word->expNeed = ExperienceNeeded(word->level);
     }
     word_UpdateStats(word);
 }

@@ -10,6 +10,14 @@
 #include <allegro5/allegro.h>
 
 /**********************************************************//**
+ * @enum BAR_FLAGS
+ * @brief Stores all the rendering flags for bars.
+ **************************************************************/
+typedef enum {
+    BAR_NO_BACKGROUND=1,
+} BAR_FLAGS;
+
+/**********************************************************//**
  * @struct BAR
  * @brief Stores all information needed to render a stat bar.
  **************************************************************/
@@ -21,6 +29,7 @@ typedef struct {
     ALLEGRO_COLOR foreground;   ///< The foreground color.
     ALLEGRO_COLOR background;   ///< The background color.
     float ratio;                ///< How full the bar is (0.0 to 1.0).
+    BAR_FLAGS flags;            ///< Rendering flags.
 } BAR;
 
 /**********************************************************//**

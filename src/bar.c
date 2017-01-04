@@ -25,10 +25,14 @@ void bar_Draw(const BAR *bar) {
     int xr = bar->x + bar->ratio*bar->width;
     
     // The background of the entire bar
-    al_draw_filled_rectangle(xo, yo, xf, yf, bar->background);
+    if (!(bar->flags & BAR_NO_BACKGROUND)) {
+        al_draw_filled_rectangle(xo, yo, xf, yf, bar->background);
+    }
     
     // Filled section
-    al_draw_filled_rectangle(xo, yo, xr, yf, bar->foreground);
+    if (xr > xo) {
+        al_draw_filled_rectangle(xo, yo, xr, yf, bar->foreground);
+    }
 }
 
 /*============================================================*/

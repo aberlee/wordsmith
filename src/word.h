@@ -67,6 +67,7 @@ typedef struct {
     int level;          ///< Level of the word
     int hp;             ///< Current HP
     int exp;            ///< Current EXP
+    int expNeed;        ///< Required experience to level up.
     int stat[N_STATS];  ///< Current stats
     
 } WORD;
