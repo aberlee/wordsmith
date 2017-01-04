@@ -41,6 +41,9 @@
 /// The display window used by allegro.
 static ALLEGRO_DISPLAY *display = NULL;
 
+/// The game background color
+static ALLEGRO_COLOR background;
+
 /*============================================================*
  * Frame rate
  *============================================================*/
@@ -228,14 +231,17 @@ static inline bool setup(void) {
     }
     word_SetFont(wordFont, 16);
     
-    // Start timer
-    al_start_timer(timer);
+    // Set up background color
+    background = al_map_rgb(200, 200, 200);
     
     // Initial state
     if (!state_Push(&INITIAL_STATE)) {
         eprintf("Failed to start initial state.\n");
         return false;
     }
+    
+    // Start game
+    al_start_timer(timer);
     return true;
 }
 
@@ -272,7 +278,7 @@ int main(int argc, char **argv) {
         if (event.type == ALLEGRO_EVENT_TIMER) {
             if (al_is_event_queue_empty(event_queue)) {
                 // Redraw the entire state
-                al_clear_to_color(al_map_rgb(200, 200, 200));
+                al_clear_to_color(background);
                 if (!state_Draw()) {
                     eprintf("Failed to draw the state.\n");
                     return EXIT_FAILURE;
