@@ -74,7 +74,7 @@ bool wordtable_Load(WORD_TABLE *words, const char *filename) {
         }
 
         // Generate the current table entry
-        words->table[words->size] = (char *)malloc(strlen(buf) * sizeof(char));
+        words->table[words->size] = (char *)malloc((strlen(buf)+1) * sizeof(char));
         if (!words->table[words->size]) {
             eprintf("Out of memory.\n");
             wordtable_Destroy(words);
@@ -124,16 +124,13 @@ void wordtable_Destroy(WORD_TABLE *table) {
 static bool ContainsHelper(const WORD_TABLE *words, const char *what, int start, int end) {
     // Base case
     if (start == end+1 || start >= end) {
-        printf("Base case (%d, %d)\n", start, end);
         return strcmp(words->table[start], what) == 0;
     }
     
     // Split
     int midpoint = (start + end) / 2;
     int compare = strcmp(words->table[midpoint], what);
-    printf("Resursive case (%d, %d, %d) -> %s:%d\n", start, midpoint, end, words->table[midpoint], compare);
     if (compare == 0) {
-        printf("Early exit.\n");
         return true;
     } else if (compare > 0) {
         return ContainsHelper(words, what, start, midpoint);
@@ -144,7 +141,6 @@ static bool ContainsHelper(const WORD_TABLE *words, const char *what, int start,
     
 
 bool wordtable_Contains(const WORD_TABLE *words, const char *what) {
-    printf("Check \"%s\"\n", what);
     return ContainsHelper(words, what, 0, words->size);
 }
 
