@@ -28,6 +28,7 @@
 #include "word.h"       // WORD
 #include "word_sprite.h"// WORD_SPRITE
 #include "word_frame.h" // word_DrawHud
+#include "word_table.h" // wordtable_Contains
 
 /*============================================================*
  * Display window
@@ -93,8 +94,8 @@ static void draw(void) {
     textframe_Draw(&second);
     
     WORD word;
-    word_Create(&word, "abstruse", 100);
-    word.hp /= 2;
+    word_Create(&word, "cassowary", 100);
+    word.hp *= 0.45;
     word.exp /= 2;
     
     WORD_SPRITE sprite;
@@ -240,7 +241,7 @@ static inline bool setup(void) {
     background = al_map_rgb(200, 200, 200);
     
     // Set up real word table
-    if (!word_LoadTable("data/words/english.txt")) {
+    if (!wordtable_Load("data/words/english.txt")) {
         eprintf("Failed to load the real word table.\n");
         return false;
     }
@@ -262,7 +263,7 @@ static inline bool setup(void) {
  **************************************************************/
 static inline void cleanup(void) {
     // Destroy resources
-    word_DestroyTable();
+    wordtable_Destroy();
     al_destroy_display(display);
     al_destroy_event_queue(event_queue);
 }

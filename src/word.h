@@ -39,18 +39,6 @@
 #define MAX_STAT 9999       ///< The maximum value for any computed stat.
 
 /**********************************************************//**
- * @brief Loads the real word table.
- * @param filename: The file to load.
- * @return Whether the table was loaded properly.
- **************************************************************/
-extern bool word_LoadTable(const char *filename);
-
-/**********************************************************//**
- * @brief Destroys the real word table.
- **************************************************************/
-extern void word_DestroyTable(void);
-
-/**********************************************************//**
  * @enum STAT
  * @brief Defines all word statistics.
  **************************************************************/

@@ -16,19 +16,6 @@
 #include "word_table.h" // WORD_TABLE
 
 /*============================================================*
- * Word table
- *============================================================*/
-static WORD_TABLE words = WORD_TABLE_INITIALIZER;
-
-bool word_LoadTable(const char *filename) {
-    return wordtable_Load(&words, filename);
-}
-
-void word_DestroyTable(void) {
-    wordtable_Destroy(&words);
-}
-
-/*============================================================*
  * Letter stat table
  *============================================================*/
 /// Maps each letter (0-25) to the stat it's associated with.
@@ -201,13 +188,16 @@ bool word_Create(WORD *word, const char *text, int level) {
     }
     
     // Convert entire word to lowercase
+    char lowercase[MAX_WORD_LENGTH+1];
     for (int i = 0; i < length; i++) {
-        word->text[i] = tolower(text[i]);
+        word->text[i] = toupper(text[i]);
+        lowercase[i] = tolower(text[i]);
     }
     word->text[length] = '\0';
+    lowercase[length] = '\0';
     
-    // Check if this is a real word
-    word->isReal = wordtable_Contains(&words, word->text);
+    // Check if this is a real word (need to check lowercase)
+    word->isReal = wordtable_Contains(lowercase);
     
     // Set level
     if (level < MIN_LEVEL || level > MAX_LEVEL) {
