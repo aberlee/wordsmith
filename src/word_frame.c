@@ -95,8 +95,8 @@ void word_DrawHud(const WORD *word, int x, int y, bool inDepth) {
     
     // Draw the word's health fraction
     char healthString[8];
-    sprintf(healthString, "%d", word->hp);
-    frame_DrawText(x+137, y+20, healthString);
+    sprintf(healthString, "%d/%d", word->hp, word->stat[MAXHP]);
+    frame_DrawOutlinedText(x+7, y+19, healthString);
     
     // Draw the word's experience bar
     if (inDepth) {

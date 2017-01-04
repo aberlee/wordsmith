@@ -53,6 +53,21 @@ void frame_DrawText(int x, int y, const char *text) {
 }
 
 /*============================================================*
+ * Outlined text
+ *============================================================*/
+void frame_DrawOutlinedText(int x, int y, const char *text) {
+    
+    // Construct the outline
+    al_draw_text(theme.font, theme.foreground, x-1, y, TEXT_FLAGS, text);
+    al_draw_text(theme.font, theme.foreground, x+1, y, TEXT_FLAGS, text);
+    al_draw_text(theme.font, theme.foreground, x, y-1, TEXT_FLAGS, text);
+    al_draw_text(theme.font, theme.foreground, x, y+1, TEXT_FLAGS, text);
+    
+    // Draw the actual text
+    al_draw_text(theme.font, theme.background, x, y, TEXT_FLAGS, text);
+}
+
+/*============================================================*
  * Sizing frames
  *============================================================*/
 void frame_SetSize(FRAME *frame, int width, int height) {

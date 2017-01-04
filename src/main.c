@@ -94,6 +94,8 @@ static void draw(void) {
     
     WORD word;
     word_Create(&word, "Test", 100);
+    word.hp /= 2;
+    word.exp /= 2;
     
     WORD_SPRITE sprite;
     word_LoadSprite(&sprite, &word);

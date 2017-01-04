@@ -55,6 +55,14 @@ extern const THEME *frame_GetTheme(void);
 extern void frame_DrawText(int x, int y, const char *text);
 
 /**********************************************************//**
+ * @brief Draws outlined text based on the current theme.
+ * @param x: The x coordinate of the text.
+ * @param y: The y coordinate of the text.
+ * @param text: The text to draw.
+ **************************************************************/
+extern void frame_DrawOutlinedText(int x, int y, const char *text);
+
+/**********************************************************//**
  * @enum FRAME_FLAG
  * @brief Enumeration of all the rendering flags used on 
  * frames defined in this module.
