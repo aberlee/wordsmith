@@ -160,9 +160,8 @@ static int CodonTechnique(int codon, int stacks) {
  * @param word: The word to update.
  **************************************************************/
 static inline void word_UpdateStats(WORD *word) {
-    int modifier = word->isReal ? 10 : 5;
     for (int i = 0; i < N_STATS; i++) {
-        word->stat[i] = (word->base[i]*(word->level + modifier)) / 100;
+        word->stat[i] = (word->base[i]*(word->level + 5)) * 3 / 100;
     }
 }
 
@@ -174,7 +173,7 @@ static inline void word_UpdateStats(WORD *word) {
 static inline int ExperienceNeeded(int n) {
     return n*n;
 }
-
+    
 /*============================================================*
  * Creating a word
  *============================================================*/
@@ -210,7 +209,7 @@ bool word_Create(WORD *word, const char *text, int level) {
     // The word gets points for each letter, with letters located
     // earlier in the word having more weight. After this is
     // completed, the word certainly contains only valid stats.
-    int acc[N_STATS] = {1, 1, 1, 1};
+    int acc[N_STATS] = {1};
     int stat;
     for (int i = 0; i < length; i++) {
         // Weight each letter according to its position in the word
@@ -223,20 +222,21 @@ bool word_Create(WORD *word, const char *text, int level) {
     
     // Scale base stat totals (balancing)
     int total = 0;
-    for (int i = 0; i < N_STATS; total += acc[i++]);
-    int statAverage = (total + 3) / 4;
+    for (int i = 0; i < N_STATS; i++) {
+        total += acc[i];
+    }
+    int statAverage = 1 + (total + 3) / 4;
     
-    // Set base stats
-    int baseStat;
+    // Get the initial base stat modifier
+    int initial = 40;
+    if (word->isReal) {
+        initial += 30;
+    }
+    
+    // Set initial base stats
     for (int i = 0; i < N_STATS; i++) {
         // Multiply first to avoid truncation errors
-        baseStat = (acc[i] * 255) / statAverage;
-        if (baseStat > MAX_STAT) {
-            baseStat = MAX_STAT;
-        } else if (baseStat < MIN_STAT) {
-            baseStat = MIN_STAT;
-        }
-        word->base[i] = baseStat;
+        word->base[i] = initial + (acc[i] * 60) / statAverage;
     }
     
     // Set up codon reading
@@ -251,7 +251,7 @@ bool word_Create(WORD *word, const char *text, int level) {
     int index;
     int tech;
     word->nTechs = 0;
-    for (int i = 1; i < length && word->nTechs < MAX_TECHNIQUES; i++) {
+    for (int i = 1; i < length; i++) {
         // Read the next codon (loop if invalid)
         first = second;
         index = i % length;
@@ -267,12 +267,37 @@ bool word_Create(WORD *word, const char *text, int level) {
         // It is also impossible for tech to already exist in
         // the word's moveset so long as the mapping array is
         // configured properly.
-        if (tech == NONE) {
+        if (tech != NONE && word->nTechs < MAX_TECHNIQUES) {
+            word->techs[word->nTechs++] = tech;
+        } else if (word->isReal) {
+            // Only get these boosts for real words so we can prevent
+            // spamming stuff like "aaaaaaaaaaaaaaaa"
             word->base[first] += STAT_BOOST;
             word->base[second] += STAT_BOOST;
-        } else {
-            word->techs[word->nTechs++] = tech;
         }
+    }
+    
+    // Base stat restriction
+    for (int i = 0; i < N_STATS; i++) {
+        if (word->base[i] > MAX_BASE_STAT) {
+            word->base[i] = MAX_BASE_STAT;
+        }
+    }
+    
+    // Find the word rank.
+    int bst = word->base[MAXHP] + word->base[ATTACK] + word->base[DEFEND] + word->base[SPEED];
+    if (bst < 300) {
+        word->rank = RANK_F;
+    } else if (bst < 350) {
+        word->rank = RANK_D;
+    } else if (bst < 400) {
+        word->rank = RANK_C;
+    } else if (bst < 450) {
+        word->rank = RANK_B;
+    } else if (bst < 500) {
+        word->rank = RANK_A;
+    } else {
+        word->rank = RANK_S;
     }
     
     // Initialize stats

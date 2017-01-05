@@ -53,6 +53,20 @@ typedef enum {
 #define N_STATS 4
 
 /**********************************************************//**
+ * @enum RANK
+ * @brief Defines the rank of the word, based on the base stat
+ * total (BST).
+ **************************************************************/
+typedef enum {
+    RANK_F=0,   ///< Worst rank. BST < 250
+    RANK_D=1,   ///< Lower rank. 250 <= BST < 275
+    RANK_C=2,   ///< Average rank. 275 <= BST < 325
+    RANK_B=3,   ///< Above average rank. 325 <= BST < 375
+    RANK_A=4,   ///< Excellent rank. 375 <= BST < 400
+    RANK_S=5,   ///< Best rank. 400 <= BST
+} RANK;
+
+/**********************************************************//**
  * @struct WORD
  * @brief Defines all the data in one word.
  **************************************************************/
@@ -62,6 +76,7 @@ typedef struct {
     TECHNIQUE techs[MAX_TECHNIQUES];///< Techniques known.
     int base[N_STATS];  ///< Constant base stats.
     int nTechs;         ///< Number of techniques.
+    RANK rank;          ///< The rank of the word.
     bool isReal;        ///< Whether this word is a real word.
     
     // Current stats (recalculate on level up)
