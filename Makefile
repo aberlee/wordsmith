@@ -3,7 +3,7 @@
 #===================================#
 
 #========= Debug mode setup ========#
-DEBUG := -DDEBUG -DVERBOSE -DTRACE
+DEBUG := -DDEBUG -DVERBOSE -UTRACE
 NDEBUG := -UDEBUG -DVERBOSE -UTRACE
 
 #===== Compiler / linker setup =====#
