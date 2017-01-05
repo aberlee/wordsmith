@@ -167,6 +167,10 @@ static bool ContainsHelper(const char *what, int start, int end) {
     
 
 bool wordtable_Contains(const char *what) {
+    if (words.size == 0) {
+        eprintf("Word table not initialized.\n");
+        return false;
+    }
     return ContainsHelper(what, 0, words.size);
 }
 
