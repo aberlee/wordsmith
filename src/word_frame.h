@@ -13,13 +13,23 @@
 #include "word.h"       // WORD
 
 /**********************************************************//**
+ * @enum HUD_MODE
+ * @brief Rendering mode for the HUD.
+ **************************************************************/
+typedef enum {
+    HUD_BASIC,      ///< Draw only the basic name, level, and HP.
+    HUD_EXTENDED,   ///< Also draw extended stats such as experience.
+    HUD_FULL,       ///< Draw all the word's stats.
+} HUD_MODE;
+
+/**********************************************************//**
  * @brief Draw the word's heads-up display.
  * @param word: The word to display.
  * @param x: The x position of the frame.
  * @param y: The y position of the frame.
  * @param inDepth: Render the experience bar?
  **************************************************************/
-void word_DrawHud(const WORD *word, int x, int y, bool inDepth);
+void word_DrawHud(const WORD *word, int x, int y, HUD_MODE mode);
 
 /*============================================================*/
 #endif // _WORD_FRAME_H_

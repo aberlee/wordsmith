@@ -4,6 +4,7 @@
  **************************************************************/
 
 // Standard library
+#include <stdbool.h>    // bool
 #include <stdio.h>      // sprintf
 
 // Allegro
@@ -12,9 +13,59 @@
 #include <allegro5/allegro_primitives.h>
 
 // This project
+#include "debug.h"      // eprintf
 #include "frame.h"      // frame_DrawText
 #include "bar.h"        // BAR
 #include "word.h"       // WORD
+#include "word_frame.h" // HUD_MODE
+
+/*============================================================*
+ * Images
+ *============================================================*/
+static struct {
+    // HUD graphics
+    ALLEGRO_BITMAP *hud;
+    ALLEGRO_BITMAP *hudExp;
+    ALLEGRO_BITMAP *hudFull;
+    
+    // HUD icons
+    ALLEGRO_BITMAP *realWord;
+    
+    // Rank images
+    ALLEGRO_BITMAP *rankS;
+    ALLEGRO_BITMAP *rankA;
+    ALLEGRO_BITMAP *rankB;
+    ALLEGRO_BITMAP *rankC;
+    ALLEGRO_BITMAP *rankD;
+    ALLEGRO_BITMAP *rankF;
+} images;
+
+static void LoadImages(void) {
+    // Only execute this code once.
+    static bool loaded = false;
+    if (loaded) {
+        return;
+    }
+    
+    // Load HUD images
+    assert(images.hud = al_load_bitmap("data/image/hud.png"));
+    assert(images.hudExp = al_load_bitmap("data/image/hud_exp.png"));
+    assert(images.hudFull = al_load_bitmap("data/image/hud_stats.png"));
+    
+    // Load HUD icons
+    assert(images.realWord = al_load_bitmap("data/image/real.png"));
+    
+    // Load rank icons
+    assert(images.rankS = al_load_bitmap("data/image/rank_s.png"));
+    assert(images.rankA = al_load_bitmap("data/image/rank_a.png"));
+    assert(images.rankB = al_load_bitmap("data/image/rank_b.png"));
+    assert(images.rankC = al_load_bitmap("data/image/rank_c.png"));
+    assert(images.rankD = al_load_bitmap("data/image/rank_d.png"));
+    assert(images.rankF = al_load_bitmap("data/image/rank_f.png"));
+    
+    // Done
+    loaded = true;
+}
 
 /**********************************************************//**
  * @brief Get the color of the health bar at the given ratio.
@@ -34,7 +85,7 @@ static ALLEGRO_COLOR HealthColor(float ratio) {
             balance = 255;
         }
         r = 255;
-        g = ratio;
+        g = balance;
         
     } else {
         // Balance yellow and green
@@ -53,40 +104,39 @@ static ALLEGRO_COLOR HealthColor(float ratio) {
 /*============================================================*
  * Draw the word HUD
  *============================================================*/
-void word_DrawHud(const WORD *word, int x, int y, bool inDepth) {
+void word_DrawHud(const WORD *word, int x, int y, HUD_MODE mode) {
     
-    // Basic word HUD
-    static ALLEGRO_BITMAP *hud = NULL;
-    if (hud == NULL) {
-        assert(hud = al_load_bitmap("data/image/hud.png"));
-    }
-    
-    // Extended word HUD
-    static ALLEGRO_BITMAP *hudExp = NULL;
-    if (hudExp == NULL) {
-        assert(hudExp = al_load_bitmap("data/image/hud_exp.png"));
-    }
-    
-    // Real word marker
-    static ALLEGRO_BITMAP *realWord = NULL;
-    if (realWord == NULL) {
-        assert(realWord = al_load_bitmap("data/image/real.png"));
-    }
+    // Requires images
+    LoadImages();
     
     // Choose whether to draw experience or not
-    if (inDepth) {
-        al_draw_bitmap(hudExp, x, y, 0);
-    } else {
-        al_draw_bitmap(hud, x, y, 0);
+    switch (mode) {
+    case HUD_BASIC:
+        al_draw_bitmap(images.hud, x, y, 0);
+        break;
+    
+    case HUD_EXTENDED:
+        al_draw_bitmap(images.hudExp, x, y, 0);
+        break;
+    
+    case HUD_FULL:
+        al_draw_bitmap(images.hudFull, x, y, 0);
+        break;
+    
+    default:
+        eprintf("Invalid hud mode: %d\n", mode);
+        return;
     }
     
     // Draw the word's name
     frame_DrawText(x+8, y+7, word->text);
     
+    // Buffer for all strings
+    char string[32];
+    
     // Draw the word's level
-    char levelString[4];
-    sprintf(levelString, "%d", word->level);
-    frame_DrawText(x+144, y+7, levelString);
+    sprintf(string, "%d", word->level);
+    frame_DrawText(x+144, y+7, string);
     
     // Draw the word's health bar
     BAR health;
@@ -100,26 +150,72 @@ void word_DrawHud(const WORD *word, int x, int y, bool inDepth) {
     bar_Draw(&health);
     
     // Draw the word's health fraction
-    char healthString[8];
-    sprintf(healthString, "%d/%d", word->hp, word->stat[MAXHP]);
-    frame_DrawOutlinedText(x+7, y+19, healthString);
+    sprintf(string, "%d/%d", word->hp, word->stat[MAXHP]);
+    frame_DrawOutlinedText(x+7, y+19, string);
     
     // Draw the real word symbol
     if (word->isReal) {
-        al_draw_bitmap(realWord, x+137, y+20, 0);
+        al_draw_bitmap(images.realWord, x+137, y+20, 0);
     }
-    
+
     // Draw the word's experience bar
-    if (inDepth) {
+    if (mode == HUD_EXTENDED || mode == HUD_FULL) {
         BAR exp;
         exp.x = x+17;
-        exp.y = y+33;
+        exp.y = (mode == HUD_FULL)? y+92: y+33;
         exp.width = 151;
         exp.height = 2;
         exp.ratio = 1.0 - (float)word->exp / word->expNeed;
         exp.foreground = al_map_rgb(124, 118, 184);
         exp.flags = BAR_NO_BACKGROUND;
         bar_Draw(&exp);
+    }
+    
+    // Draw the full stats
+    if (mode == HUD_FULL) {
+        // Draw all the stats
+        sprintf(string, "%d", word->stat[ATTACK]);
+        frame_DrawText(x+146, y+41, string);
+        
+        sprintf(string, "%d", word->stat[DEFEND]);
+        frame_DrawText(x+146, y+53, string);
+        
+        sprintf(string, "%d", word->stat[SPEED]);
+        frame_DrawText(x+146, y+65, string);
+        
+        // Draw the rank
+        ALLEGRO_BITMAP *rank;
+        switch (word->rank) {
+        case RANK_S:
+            rank = images.rankS;
+            break;
+        case RANK_A:
+            rank = images.rankA;
+            break;
+        case RANK_B:
+            rank = images.rankB;
+            break;
+        case RANK_C:
+            rank = images.rankC;
+            break;
+        case RANK_D:
+            rank = images.rankD;
+            break;
+        case RANK_F:
+        default:
+            rank = images.rankF;
+            break;
+        }
+        al_draw_bitmap(rank, x+147, y+77, 0);
+        
+        // Draw the techniques
+        const TECHNIQUE_DATA *data;
+        int techY = y+41;
+        for (int i = 0; i < word->nTechs; i++) {
+            data = technique_GetData(word->techs[i]);
+            frame_DrawText(x+7, techY, data->name);
+            techY += 12;
+        }
     }
 }
 

@@ -94,7 +94,7 @@ static void draw(void) {
     textframe_Draw(&second);
     
     WORD word;
-    word_Create(&word, "cassowary", 100);
+    word_Create(&word, "fuck", 1);
     word.hp *= 0.45;
     word.exp /= 2;
     
@@ -106,7 +106,7 @@ static void draw(void) {
     word_AnimateIdle(&sprite, frame*8);
     word_DrawSprite(&sprite);
     
-    word_DrawHud(&word, 300, 10, true);
+    word_DrawHud(&word, 300, 10, HUD_FULL);
 }
 
 /**********************************************************//**
