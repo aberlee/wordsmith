@@ -27,7 +27,7 @@ typedef enum {
  * @param word: The word to display.
  * @param x: The x position of the frame.
  * @param y: The y position of the frame.
- * @param inDepth: Render the experience bar?
+ * @param mode: The kind of HUD to draw.
  **************************************************************/
 void word_DrawHud(const WORD *word, int x, int y, HUD_MODE mode);
 

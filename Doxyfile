@@ -1,6 +1,6 @@
 # test
-PROJECT_NAME = "C Project"
-PROJECT_BRIEF = "Something programmed in C."
+PROJECT_NAME = "Wordsmith"
+PROJECT_BRIEF = "Word-fighting RPG written in C using Allegro5."
 
 OUTPUT_DIRECTORY = "doc"
 EXAMPLE_PATH = .

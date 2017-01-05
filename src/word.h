@@ -58,12 +58,12 @@ typedef enum {
  * total (BST).
  **************************************************************/
 typedef enum {
-    RANK_F=0,   ///< Worst rank. BST < 250
-    RANK_D=1,   ///< Lower rank. 250 <= BST < 275
-    RANK_C=2,   ///< Average rank. 275 <= BST < 325
-    RANK_B=3,   ///< Above average rank. 325 <= BST < 375
-    RANK_A=4,   ///< Excellent rank. 375 <= BST < 400
-    RANK_S=5,   ///< Best rank. 400 <= BST
+    RANK_F=0,   ///< Worst rank. BST < 300
+    RANK_D=1,   ///< Lower rank. 300 <= BST < 350
+    RANK_C=2,   ///< Average rank. 350 <= BST < 400
+    RANK_B=3,   ///< Above average rank. 400 <= BST < 450
+    RANK_A=4,   ///< Excellent rank. 450 <= BST < 500
+    RANK_S=5,   ///< Best rank. 500 <= BST
 } RANK;
 
 /**********************************************************//**
