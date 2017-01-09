@@ -3,8 +3,6 @@
  * @brief Main module for C Program.
  * Some "Hello World" code from gist.github.com/dradtke/2494024
  * @author Wes64
- * @mainpage
- * @htmlinclude main.html
  **************************************************************/
 
 // Standard library

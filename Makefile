@@ -30,7 +30,12 @@ IMPORTANT := $(MAKEFILE) README.md
 ALLEGRO_DIR := C:/lib/allegro/allegro
 INCLUDE += -I$(ALLEGRO_DIR)/include
 LIBRARY += -L$(ALLEGRO_DIR)/lib
-LFLAGS += -lallegro -lallegro_audio -lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
+LFLAGS += -lallegro
+LFLAGS += -lallegro_audio
+LFLAGS += -lallegro_font
+LFLAGS += -lallegro_image
+LFLAGS += -lallegro_primitives
+LFLAGS += -lallegro_ttf
 
 #=========== Build setup ===========#
 BUILD_DIR := build
@@ -52,8 +57,9 @@ TESTS := $(TCFILES:$(TEST_DIR)/%.c=%.exe)
 
 #========== Documentation ==========#
 DOC_DIR := doc
+WEB_DIR := web
 DOXYFILE := Doxyfile
-DOXYGEN := $(DOXYFILE) main.html
+DOXYGEN := $(DOXYFILE) doc/main.html
 IMPORTANT += $(DOXYGEN)
 
 #============== Rules ==============#
@@ -83,8 +89,8 @@ $(TEST_DIR)/$(BUILD_DIR)/%.o: $(TEST_DIR)/%.c $(MAKEFILE)
 
 # Documentation
 .PHONY: documentation
-documentation: $(DOC_DIR)
-$(DOC_DIR): $(DOXYGEN) $(HFILES)
+documentation: $(WEB_DIR)
+$(WEB_DIR): $(DOXYGEN) $(HFILES)
 	doxygen Doxyfile
 
 # Make executable for each driver
@@ -98,7 +104,7 @@ $(EXECUTABLE): $(OFILES) $(BUILD_DIR)/main.o
 # Clean up build files and executable
 .PHONY: clean
 clean:
-	-rm -rf $(BUILD_DIR) $(TEST_DIR)/$(BUILD_DIR) $(DOC_DIR) *.exe $(ARCHIVE)
+	-rm -rf $(BUILD_DIR) $(TEST_DIR)/$(BUILD_DIR) $(WEB_DIR) *.exe $(ARCHIVE)
 	
 #============= Archive =============#
 # Package all the files into a tar.
