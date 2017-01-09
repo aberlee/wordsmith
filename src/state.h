@@ -8,6 +8,7 @@
 #define _STATE_H_
 
 // Standard library
+#include <stddef.h>     // NULL
 #include <stdbool.h>    // bool
 
 // Allegro
@@ -19,9 +20,33 @@
  * state at any time.
  **************************************************************/
 typedef struct {
-    void (*draw)(void);     ///< Function to draw the state.
-    bool (*run)(const ALLEGRO_EVENT *); ///< Runs the state.
+    /// @brief Initializes the current state. This function is
+    /// called whenever the state is transitioned to.
+    void (*setup)(void);
+    
+    /// @brief Renders the current state.
+    void (*draw)(void);
+    
+    /// @brief Runs the current state. This is used to handle
+    /// all events other than frame refresh events.
+    /// @param event: The user input event to handle.
+    /// @return Whether the execution succeeded.
+    bool (*run)(const ALLEGRO_EVENT *event);
+    
+    /// @brief Update the state. This function handles frame
+    /// refresh events.
+    /// @param time: The real time since the last update.
+    /// @return Whether the execution succeeded.
+    bool (*update)(double time);  
+
+    /// @brief Cleans up the current state. This function is
+    /// called whenever the state is transitioned away from.
+    void (*cleanup)(void);
+    
 } STATE;
+
+/// The null state.
+#define STATE_INITIALIZER {NULL}
 
 /**********************************************************//**
  * @brief Draws the current state.
@@ -30,23 +55,30 @@ typedef struct {
 extern bool state_Draw(void);
 
 /**********************************************************//**
- * @brief Runs one frame of the current state.
+ * @brief Handles a user input event with the current state.
+ * @param event: The event to handle.
  * @return Whether the run succeeded.
  **************************************************************/
 extern bool state_Run(const ALLEGRO_EVENT *event);
 
 /**********************************************************//**
- * @brief Changes to a new state.
- * @param state: The next state. This can be deleted after.
- * @return Whether the state change succeeded.
+ * @brief Updates the state on every frame.
+ * @param time: The time since the last frame.
  **************************************************************/
-extern bool state_Push(const STATE *state);
+extern bool state_Update(double time);
 
 /**********************************************************//**
- * @brief Returns to the previous state.
- * @return Whether the state change succeeded.
+ * @brief Changes to a new state.
+ * @param state: The next state. This can be deleted after.
  **************************************************************/
-extern bool state_Pop(void);
+extern void state_Transition(const STATE *state);
+
+/**********************************************************//**
+ * @brief Initializes the first state.
+ * @param state: The initial state's data. This data can be
+ * destroyed later.
+ **************************************************************/
+#define state_Initialize(state) state_Transition(state)
 
 /*============================================================*/
 #endif // _STATE_H_

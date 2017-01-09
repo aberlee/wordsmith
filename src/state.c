@@ -10,55 +10,48 @@
 // This project
 #include "state.h"      // STATE
 
-/*============================================================*
- * State stack
- *============================================================*/
-#define STATE_STACK_SIZE 64             // Size of state stack
-static STATE stack[STATE_STACK_SIZE];   // The state stack.
-static int current = -1;                // Top of the state stack.
+/// The current state.
+static STATE current = STATE_INITIALIZER;
 
 /*============================================================*
  * Changing to a new state
  *============================================================*/
-bool state_Push(const STATE *state) {
-    if (current+1 < STATE_STACK_SIZE) {
-        current++;
-        stack[current] = *state;
-        return true;
+void state_Transition(const STATE *state) {
+    if (current.cleanup) {
+        current.cleanup();
     }
-    return false;
+    current = *state;
+    if (current.setup) {
+        current.setup();
+    }
 }
 
 /*============================================================*
- * Return to a previous state
- *============================================================*/
-bool state_Pop(void) {
-    if (current >= 0) {
-        current--;
-        return true;
-    }
-    return false;
-}
-
-/*============================================================*
- * Draw the current state
+ * Interact with the current state
  *============================================================*/
 bool state_Draw(void) {
-    if (current >= 0) {
-        stack[current].draw();
+    if (current.draw) {
+        current.draw();
         return true;
     }
-    return false;
+    // Not implemented
+    return true;
 }
 
-/*============================================================*
- * Run the current state
- *============================================================*/
 bool state_Run(const ALLEGRO_EVENT *event) {
-    if (current >= 0) {
-        return stack[current].run(event);
+    if (current.run) {
+        return current.run(event);
     }
-    return false;
+    // Not implemented
+    return true;
+}
+
+bool state_Update(double time) {
+    if (current.update) {
+        return current.update(time);
+    }
+    // Not implemented
+    return true;
 }
 
 /*============================================================*/
