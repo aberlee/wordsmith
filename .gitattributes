@@ -1,6 +1,9 @@
 # Sources
 *.c text
 *.h text
+*.cpp text
+*.hpp text
+*.inc text
 
 # Compiled stuff
 *.o binary
@@ -15,6 +18,12 @@
 # Linguist overrides
 *.c linguist-language=C
 *.h linguist-language=C
+*.inc linguist-language=C
+*.cpp linguist-language=C++
+*.hpp linguist-language=C++
 
 # Linguist documentation
-doc/* linguist-documentation
+doxygen/* linguist-documentation
+
+# Library code
+lib/* linguist-vendored
