@@ -1,30 +1,34 @@
-#===================================#
 # C Project Makefile
-#===================================#
 
 #========= Debug mode setup ========#
+# debug.h macros.
 DEBUG := -DDEBUG -DVERBOSE -UTRACE
 NDEBUG := -UDEBUG -DVERBOSE -UTRACE
 
 #===== Compiler / linker setup =====#
+# gcc with MinGW setup.
 CC := gcc
-CFLAGS := -g -O3 -Wall -Wpedantic -Wextra -std=c99
+CFLAGS := -g -O3 -Wall -Wpedantic -Wextra -std=gnu99
 DFLAGS := -MP -MMD
 LFLAGS := -s -lm
 INCLUDE := 
 LIBRARY := 
+IMPORTANT :=
 
 #======== Source code setup ========#
-SRC_DIR := src
+# Directory for all project files and
+# the main.c file.
+SRC_DIR := ./src
 INCLUDE += -I$(SRC_DIR)
 
 # Source files
-CFILES := $(subst $(SRC_DIR)/main.c,,$(wildcard $(SRC_DIR)/*.c))
+CFILES := $(wildcard $(SRC_DIR)/*.c)
 HFILES := $(wildcard $(SRC_DIR)/*.h)
+IMPORTANT += $(SRC_DIR)
 
 # Important files
 MAKEFILE := Makefile
-IMPORTANT := $(MAKEFILE) README.md
+IMPORTANT += $(MAKEFILE) README.md
 
 #========== Allegro Setup ==========#
 ALLEGRO_DIR := C:/lib/allegro/allegro
@@ -38,79 +42,79 @@ LFLAGS += -lallegro_primitives
 LFLAGS += -lallegro_ttf
 
 #=========== Build setup ===========#
+# Directory for built files.
 BUILD_DIR := build
 OFILES := $(CFILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 DFILES := $(OFILES:%.o=%.d)
 
-# Main program to create
-EXECUTABLE := ./main.exe
+#============ Main files ===========#
+# Standalone text executable sources
+# to link with the rest of the code.
+MAIN_DIR := main
+MCFILES := $(wildcard $(MAIN_DIR)/*.c)
+MOFILES := $(MCFILES:$(MAIN_DIR)/%.c=$(BUILD_DIR)/$(MAIN_DIR)/%.o)
+MDFILES := $(MOFILES:%.o=%.d)
+IMPORTANT += $(MCFILES)
 
-# Archive name to create
-ARCHIVE := ./project.tar.gz
-
-#============ Test files ===========#
-TEST_DIR := test
-TCFILES := $(wildcard $(TEST_DIR)/*.c)
-TOFILES := $(TCFILES:$(TEST_DIR)/%.c=$(TEST_DIR)/$(BUILD_DIR)/%.o)
-TDFILES := $(TOFILES:%.o=%.d)
-TESTS := $(TCFILES:$(TEST_DIR)/%.c=%.exe)
+ALL_EXECUTABLES := $(MCFILES:$(MAIN_DIR)/%.c=%.exe)
+TESTS := $(filter test_%.exe,$(ALL_EXECUTABLES))
+EXECUTABLES := $(filter-out test_%.exe,$(ALL_EXECUTABLES))
 
 #========== Documentation ==========#
-DOC_DIR := doc
-WEB_DIR := web
+# Doxygen documentation setup
+DOC_DIR := docs
 DOXYFILE := Doxyfile
-DOXYGEN := $(DOXYFILE) doc/main.html
-IMPORTANT += $(DOXYGEN)
+DOXFILES := $(wildcard doxygen/*)
+IMPORTANT += $(DOXYFILE) $(DOXFILES)
 
 #============== Rules ==============#
+# Default: just make executables
+.PHONY: default
+default: $(BUILD_DIR) $(EXECUTABLES)
+
+# Make just the tests
+.PHONY: tests
+tests: $(BUILD_DIR) $(TESTS)
+
 # Default - make the executable
 .PHONY: all
-all: $(BUILD_DIR) $(EXECUTABLE) $(TESTS)
+all: default tests
 
 # Put all the .o files in the build directory
 $(BUILD_DIR):
 	-mkdir $@
-	-mkdir $(TEST_DIR)/$@
+	-mkdir $@/$(MAIN_DIR)
 
-# Generate the release build files
+# Compile the source files
 .SECONDARY: $(DFILES)
 .SECONDARY: $(OFILES)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(MAKEFILE)
 	$(CC) $(CFLAGS) $(DFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
-
-.SECONDARY: $(TDFILES)
-.SECONDARY: $(TOFILES)
-$(TEST_DIR)/$(BUILD_DIR)/%.o: $(TEST_DIR)/%.c $(MAKEFILE)
+	
+# Compile the main method executables
+.SECONDARY: $(MDFILES)
+.SECONDARY: $(MOFILES)
+$(BUILD_DIR)/$(MAIN_DIR)/%.o: $(MAIN_DIR)/%.c $(MAKEFILE)
 	$(CC) $(CFLAGS) $(DFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
 
 # Automatic dependency files
 -include $(DFILES)
--include $(TDFILES)
+-include $(MDFILES)
 
 # Documentation
 .PHONY: documentation
-documentation: $(WEB_DIR)
-$(WEB_DIR): $(DOXYGEN) $(HFILES)
+documentation: $(DOC_DIR)
+$(DOC_DIR): $(DOXFILES) $(CFILES) $(HFILES) $(MCFILES)
 	doxygen Doxyfile
 
 # Make executable for each driver
-$(EXECUTABLE): $(OFILES) $(BUILD_DIR)/main.o
-	$(CC) $^ $(LIBRARY) $(LFLAGS) -o $@
-
-%.exe: $(OFILES) $(TEST_DIR)/$(BUILD_DIR)/%.o
-	$(CC) $^ $(LIBRARY) $(LFLAGS) -o $@
+%.exe: $(BUILD_DIR)/$(MAIN_DIR)/%.o $(OFILES)
+	$(CC) -o $@ $^ $(LIBRARY) $(LFLAGS)
 
 #============== Clean ==============#
 # Clean up build files and executable
 .PHONY: clean
 clean:
-	-rm -rf $(BUILD_DIR) $(TEST_DIR)/$(BUILD_DIR) $(WEB_DIR) *.exe $(ARCHIVE)
-	
-#============= Archive =============#
-# Package all the files into a tar.
-.PHONY: archive
-archive: $(ARCHIVE)
-$(ARCHIVE): $(CFILES) $(HFILES) $(IMPORTANT)
-	tar -czvf $@ $^
+	-rm -rf $(BUILD_DIR) $(EXECUTABLES) $(TESTS)
 
 #===================================#
