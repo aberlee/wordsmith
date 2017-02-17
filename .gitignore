@@ -1,13 +1,10 @@
-#===================================#
-# C Project Gitignore
-#===================================#
-
 # Ignore built files
 *.o
 *.d
 *.gch
 
 # Ignore compiled files
+*.a
 *.exe
 *.dll
 *.out
@@ -17,7 +14,6 @@
 
 # Ignore LaTeX stuff
 *.aux
-*.log
 *.synctex.gz
 *.pdf
 
@@ -25,3 +21,6 @@
 *.tar
 *.tar.gz
 *.zip
+
+# Ignore libraries
+lib
