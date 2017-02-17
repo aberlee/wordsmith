@@ -23,8 +23,11 @@ INCLUDE += -I$(SRC_DIR)
 
 # Source files
 CFILES := $(wildcard $(SRC_DIR)/*.c)
+CFILES += $(wildcard $(SRC_DIR)/**/*.c)
 HFILES := $(wildcard $(SRC_DIR)/*.h)
+HFILES += $(wildcard $(SRC_DIR)/**/*.h)
 IMPORTANT += $(SRC_DIR)
+SRC_SUB_DIRS := $(sort $(filter-out $(SRC_DIR)/,$(dir $(CFILES) $(HFILES))))
 
 # Important files
 MAKEFILE := Makefile
@@ -44,6 +47,7 @@ LFLAGS += -lallegro_ttf
 #=========== Build setup ===========#
 # Directory for built files.
 BUILD_DIR := build
+BUILD_SUB_DIRS := $(SRC_SUB_DIRS:$(SRC_DIR)/%=$(BUILD_DIR)/%)
 OFILES := $(CFILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 DFILES := $(OFILES:%.o=%.d)
 
@@ -82,8 +86,7 @@ all: default tests
 
 # Put all the .o files in the build directory
 $(BUILD_DIR):
-	-mkdir $@
-	-mkdir $@/$(MAIN_DIR)
+	-mkdir $(BUILD_DIR) $(BUILD_DIR)/$(MAIN_DIR) $(BUILD_SUB_DIRS)
 
 # Compile the source files
 .SECONDARY: $(DFILES)
