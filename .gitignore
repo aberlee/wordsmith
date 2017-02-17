@@ -24,3 +24,6 @@
 
 # Ignore libraries
 lib
+
+# Ignore web documentation
+docs

@@ -24,6 +24,7 @@
 
 # Linguist documentation
 doxygen/* linguist-documentation
+docs/* linguist-documentation
 
 # Library code
 lib/* linguist-vendored
