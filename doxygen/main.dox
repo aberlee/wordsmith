@@ -4,5 +4,5 @@
  * page html layout.
  * @author Wes64
  * @mainpage
- * @htmlinclude doc/main.html
+ * @htmlinclude doxygen/main.html
  **************************************************************/
