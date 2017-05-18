@@ -44,17 +44,15 @@ typedef struct {
 } WORD_SPRITE;
 
 /**********************************************************//**
- * @brief Set the font used for drawing words.
- * @param font: The font to use.
- * @param spacing: The distance between eltters.
+ * @brief Initializes the word_sprite module.
  **************************************************************/
-extern void word_SetFont(ALLEGRO_FONT *font, int spacing);
+extern void wordSprite_Initialize(void);
 
 /**********************************************************//**
  * @brief Draw the word on the screen.
  * @param sprite: The word's sprite configuration.
  **************************************************************/
-extern void word_DrawSprite(const WORD_SPRITE *sprite);
+extern void wordSprite_Draw(const WORD_SPRITE *sprite);
 
 /**********************************************************//**
  * @brief Loads a sprite for the given word. This places the
@@ -62,16 +60,7 @@ extern void word_DrawSprite(const WORD_SPRITE *sprite);
  * @param sprite: The sprite to load.
  * @param word: The word to turn into a sprite.
  **************************************************************/
-extern void word_LoadSprite(WORD_SPRITE *sprite, const WORD *word);
-
-/**********************************************************//**
- * @brief Sets the letter offsets for the given frame of the
- * looping idle animation.
- * @param sprite: The sprote to animate.
- * @param frame: The frame of animation to use (strictly
- * increasing and starts at 0).
- **************************************************************/
-extern void word_AnimateIdle(WORD_SPRITE *sprite, int frame);
+extern void wordSprite_Load(WORD_SPRITE *sprite, const WORD *word);
 
 /*============================================================*/
 #endif // _WORD_SPRITE_H_
