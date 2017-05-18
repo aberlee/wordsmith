@@ -15,7 +15,6 @@
 
 // This project
 #include "debug.h"      // eprintf, assert
-#include "keyboard.h"   // KEY
 #include "frame.h"      // FRAME
 
 //**************************************************************

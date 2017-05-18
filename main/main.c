@@ -5,10 +5,10 @@
  **************************************************************/
 
 // Standard library
-#include <stdlib.h>     // malloc, srand
-#include <stdbool.h>    // bool
-#include <stdio.h>      // printf, fopen, fclose ...
-#include <time.h>       // time
+#include <stdlib.h>         // malloc, srand
+#include <stdbool.h>        // bool
+#include <stdio.h>          // printf, fopen, fclose ...
+#include <time.h>           // time
 
 // Allegro
 #include <allegro5/allegro.h>
@@ -19,19 +19,14 @@
 #include <allegro5/allegro_primitives.h>
 
 // This project
-#include "debug.h"      // eprintf, assert
-#include "state.h"      // STATE
-#include "frame.h"      // frame_SetTheme
-#include "word_sprite.h"// word_SetFont
-#include "word_table.h" // wordtable_Load
+#include "debug.h"          // eprintf, assert
+#include "frame_rate.h"     // FrameRate
+#include "frame.h"          // FRAME
+#include "word_sprite.h"    // WORD_SPRITE
+#include "word_frame.h"     // WORD_FRAME
+#include "word_table.h"     // WORD_TABLE
 
-// Debugging
-#include "test_state.h"
-
-/*============================================================*
- * Display window
- *============================================================*/
-
+//*************************************************************
 /// The width of the display window in pixels.
 #define WINDOW_WIDTH 640
 
@@ -41,20 +36,19 @@
 /// The frame rate of the game.
 #define FRAME_RATE 60
 
+//*************************************************************
+/// Debugging font.
+static ALLEGRO_FONT *GlobalDebugFont;
+
 /**********************************************************//**
  * @brief Program setup function.
  * @return Whether the setup succeeded. The program must be
  * aborted if this function fails. It also must be called only
  * once, before any other functions care called.
  **************************************************************/
-static inline bool setup(void) {
-    
+static bool setup(void) {
     // Random number generator setup
-#ifdef DEBUG
     srand(42);
-#else
-    srand(time(NULL));
-#endif
 
     // Allegro setup
     if (!al_init()) {
@@ -88,6 +82,9 @@ static inline bool setup(void) {
     // Blender setup
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
     
+    // Timer setup
+    RegisterTimer(&al_get_time);
+    
     // Set up theme
     THEME theme;
     theme.font = al_load_ttf_font("data/font/wordsmith.ttf", 16, ALLEGRO_TTF_MONOCHROME);
@@ -105,22 +102,19 @@ static inline bool setup(void) {
     theme.spacing = 2;
     frame_SetTheme(&theme);
     
-    // Set up word font
-    ALLEGRO_FONT *wordFont = al_load_ttf_font("data/font/wordsmith.ttf", 32, ALLEGRO_TTF_MONOCHROME);
-    if (!wordFont) {
-        eprintf("Failed to load the word font.\n");
-        return false;
-    }
-    word_SetFont(wordFont, 16);
-    
     // Set up real word table
-    if (!wordtable_Load("data/words/english.txt")) {
+    if (!wordTable_Load("data/words/english.txt")) {
         eprintf("Failed to load the real word table.\n");
         return false;
     }
     
-    // Initial state
-    state_Initialize(InitialState());
+    // System setup
+    GlobalDebugFont = al_load_ttf_font("data/font/wordsmith.ttf", 16, ALLEGRO_TTF_MONOCHROME);
+    
+    // Not error checking these because the effect will be
+    // obvious if a resource is missing.
+    wordSprite_Initialize();
+    wordFrame_Initialize();
     return true;
 }
 
@@ -128,9 +122,30 @@ static inline bool setup(void) {
  * @brief Program cleanup function.
  * @return This is called when the program ends.
  **************************************************************/
-static inline void cleanup(void) {
+static void cleanup(void) {
     // Destroy resources
-    wordtable_Destroy();
+    wordTable_Destroy();
+}
+
+/**********************************************************//**
+ * @brief Screen rendering function.
+ **************************************************************/
+static void render(void) {
+    // Draw the frame rate
+    char buf[64];
+    sprintf(buf, "%0.1lf FPS", FrameRate());
+    al_draw_text(GlobalDebugFont, al_map_rgb(255, 255, 255), 1, 1, ALLEGRO_ALIGN_LEFT, buf);
+}
+
+/**********************************************************//**
+ * @brief Update loop function.
+ **************************************************************/
+static bool update(float dt) {
+    (void)dt;
+    
+    // Record the frame for frame rate
+    RegisterFrame();
+    return true;
 }
 
 /**********************************************************//**
@@ -157,6 +172,7 @@ int main(int argc, char **argv) {
     
     // Display setup
     ALLEGRO_DISPLAY *display;
+    al_set_new_display_flags(ALLEGRO_RESIZABLE);
     if (!(display = al_create_display(WINDOW_WIDTH, WINDOW_HEIGHT))) {
         eprintf("Failed to create display.\n");
         return EXIT_FAILURE;
@@ -173,7 +189,7 @@ int main(int argc, char **argv) {
     al_register_event_source(queue, al_get_timer_event_source(timer));
     
     // Set up screen
-    ALLEGRO_COLOR background = al_map_rgb(200, 200, 200);
+    ALLEGRO_COLOR background = al_map_rgb(0, 0, 0);
     al_clear_to_color(background);
     al_flip_display();
     
@@ -184,16 +200,17 @@ int main(int argc, char **argv) {
     ALLEGRO_EVENT event;
     bool running = true;
     bool redraw = false;
+    float previous = al_get_time();
+    float current;
     while (running) {
         // Get the next event
         al_wait_for_event(queue, &event);
         switch (event.type) {
         case ALLEGRO_EVENT_TIMER:
-            // Calculate the real time of the frame.
-            // Also only redraw on frame updates
-            // for efficiency.
-            // TODO does this cause errors?
-            running = state_Update(al_get_time());
+            // Compute the time step and update
+            current = al_get_time();
+            running = update(current - previous);
+            previous = current;
             redraw = true;
             break;
             
@@ -202,16 +219,13 @@ int main(int argc, char **argv) {
             break;
         
         default:
-            running = state_Run(&event);
+            break;
         }
         
         // Redraw the screen
         if (running && redraw && al_is_event_queue_empty(queue)) {
             al_clear_to_color(background);
-            if (!state_Draw()) {
-                eprintf("Failed to draw the state.\n");
-                return EXIT_FAILURE;
-            }
+            render();
             al_flip_display();
             redraw = false;
         }
