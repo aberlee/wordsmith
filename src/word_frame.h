@@ -23,13 +23,18 @@ typedef enum {
 } HUD_MODE;
 
 /**********************************************************//**
+ * @brief Initializes the word_frame module.
+ **************************************************************/
+extern void wordFrame_Initialize(void);
+
+/**********************************************************//**
  * @brief Draw the word's heads-up display.
  * @param word: The word to display.
  * @param x: The x position of the frame.
  * @param y: The y position of the frame.
  * @param mode: The kind of HUD to draw.
  **************************************************************/
-void word_DrawHud(const WORD *word, int x, int y, HUD_MODE mode);
+void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode);
 
 /*============================================================*/
 #endif // _WORD_FRAME_H_
