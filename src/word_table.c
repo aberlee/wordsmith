@@ -4,15 +4,15 @@
  **************************************************************/
 
 // Standard library
-#include <stddef.h>     // size_t
-#include <stdbool.h>    // bool
-#include <stdlib.h>     // malloc, free
-#include <stdio.h>      // FILE
-#include <string.h>     // strcmp
+#include <stddef.h>         // size_t
+#include <stdbool.h>        // bool
+#include <stdlib.h>         // malloc, free
+#include <stdio.h>          // FILE
+#include <string.h>         // strcmp
 
 // This project
-#include "debug.h"      // assert, eprintf
-#include "word_table.h" // WORD_TABLE
+#include "debug.h"          // assert, eprintf
+#include "word_table.h"     // WORD_TABLE
 
 /// The number of unique lowercase letters.
 #define N_LETTERS 26
@@ -22,7 +22,7 @@
  * @brief Stores lookup table of words.
  **************************************************************/
 typedef struct {
-    char **table;     ///< The table of all words.
+    char **table;           ///< The table of all words.
     int size;               ///< Entries in the table.
     int lookup[N_LETTERS];  ///< Letter-indexed lookup table.
 } WORD_TABLE;
@@ -31,20 +31,19 @@ typedef struct {
 #define LOOKUP_EMPTY -1
 
 /// The current word table
-static WORD_TABLE words = {0, 0, {LOOKUP_EMPTY}};
+static WORD_TABLE GlobalWords = {0, 0, {LOOKUP_EMPTY}};
 
 /*============================================================*
  * Table is valid
  *============================================================*/
-bool wordtable_IsValid(void) {
-    return words.size != 0;
+bool wordTable_IsValid(void) {
+    return GlobalWords.size != 0;
 }
 
 /*============================================================*
  * Loading the table
  *============================================================*/
-bool wordtable_Load(const char *filename) {
-    
+bool wordTable_Load(const char *filename) {
     // Load the file
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -54,13 +53,13 @@ bool wordtable_Load(const char *filename) {
     
     // Set up the lookup table
     for (int i = 0; i < N_LETTERS; i++) {
-        words.lookup[i] = LOOKUP_EMPTY;
+        GlobalWords.lookup[i] = LOOKUP_EMPTY;
     }
     
     // Read the entire file
     int tableSize = 1024;
-    words.table = (char **)malloc(tableSize * sizeof(char *));
-    words.size = 0;
+    GlobalWords.table = (char **)malloc(tableSize * sizeof(char *));
+    GlobalWords.size = 0;
     const size_t BUF_SIZE = 48;
     char buf[BUF_SIZE+1];
     while (fgets(buf, BUF_SIZE, file)) {
@@ -73,75 +72,75 @@ bool wordtable_Load(const char *filename) {
         // Lookup table management
         int key = buf[0] - 'a';
         if (key >= 0 && key < N_LETTERS) {
-            if (words.lookup[key] == LOOKUP_EMPTY) {
-                words.lookup[key] = words.size;
+            if (GlobalWords.lookup[key] == LOOKUP_EMPTY) {
+                GlobalWords.lookup[key] = GlobalWords.size;
             }
         }
         
         // Check if we need to expand the table.
-        if (words.size >= tableSize) {
+        if (GlobalWords.size >= tableSize) {
             // Reallocate the table
             char **newTable = (char **)malloc(2*tableSize * sizeof(char *));
             if (!newTable) {
                 eprintf("Failed to expand the table.\n");
-                wordtable_Destroy();
+                wordTable_Destroy();
                 return false;
             }
             
             // Copy the old table
-            for (int i = 0; i < words.size; i++) {
-                newTable[i] = words.table[i];
+            for (int i = 0; i < GlobalWords.size; i++) {
+                newTable[i] = GlobalWords.table[i];
             }
             
             // Replace the table
-            free(words.table);
-            words.table = newTable;
+            free(GlobalWords.table);
+            GlobalWords.table = newTable;
             tableSize *= 2;
         }
 
         // Generate the current table entry
-        words.table[words.size] = (char *)malloc((strlen(buf)+1) * sizeof(char));
-        if (!words.table[words.size]) {
+        GlobalWords.table[GlobalWords.size] = (char *)malloc((strlen(buf)+1) * sizeof(char));
+        if (!GlobalWords.table[GlobalWords.size]) {
             eprintf("Out of memory.\n");
-            wordtable_Destroy();
+            wordTable_Destroy();
             return false;
         }
-        strcpy(words.table[words.size], buf);
-        words.size++;
+        strcpy(GlobalWords.table[GlobalWords.size], buf);
+        GlobalWords.size++;
     }
     
     // Compress the table size
-    char **compressed = (char **)malloc(words.size * sizeof(char *));
-    if (!words.table) {
+    char **compressed = (char **)malloc(GlobalWords.size * sizeof(char *));
+    if (!GlobalWords.table) {
         eprintf("Failed to compress the table.\n");
-        wordtable_Destroy();
+        wordTable_Destroy();
         return false;
     }
     
     // Copy the old table
-    for (int i = 0; i < words.size; i++) {
-        compressed[i] = words.table[i];
+    for (int i = 0; i < GlobalWords.size; i++) {
+        compressed[i] = GlobalWords.table[i];
     }
-    free(words.table);
-    words.table = compressed;
+    free(GlobalWords.table);
+    GlobalWords.table = compressed;
     return true;
 }
 
 /*============================================================*
  * Destroying the table
  *============================================================*/
-void wordtable_Destroy(void) {
+void wordTable_Destroy(void) {
     // Guard against double free.
-    if (words.table) {
-        for (int i = 0; i < words.size; i++) {
-            free(words.table[i]);
+    if (GlobalWords.table) {
+        for (int i = 0; i < GlobalWords.size; i++) {
+            free(GlobalWords.table[i]);
         }
-        free(words.table);
+        free(GlobalWords.table);
     }
     
     // Reset table attributes.
-    words.table = NULL;
-    words.size = 0;
+    GlobalWords.table = NULL;
+    GlobalWords.size = 0;
 }
 
 /*============================================================*
@@ -150,12 +149,12 @@ void wordtable_Destroy(void) {
 static bool ContainsHelper(const char *what, int start, int end) {
     // Base case
     if (start == end+1 || start >= end) {
-        return strcmp(words.table[start], what) == 0;
+        return strcmp(GlobalWords.table[start], what) == 0;
     }
     
     // Split
     int midpoint = (start + end) / 2;
-    int compare = strcmp(words.table[midpoint], what);
+    int compare = strcmp(GlobalWords.table[midpoint], what);
     if (compare == 0) {
         return true;
     } else if (compare > 0) {
@@ -164,14 +163,12 @@ static bool ContainsHelper(const char *what, int start, int end) {
         return ContainsHelper(what, midpoint+1, end);
     }
 }
-    
 
-bool wordtable_Contains(const char *what) {
-    if (words.size == 0) {
-        eprintf("Word table not initialized.\n");
+bool wordTable_Contains(const char *what) {
+    if (GlobalWords.size == 0) {
         return false;
     }
-    return ContainsHelper(what, 0, words.size);
+    return ContainsHelper(what, 0, GlobalWords.size);
 }
 
 /*============================================================*/

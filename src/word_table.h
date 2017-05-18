@@ -17,26 +17,26 @@
  * @return Whether the loading succeeded. If it succeeds you
  * must destroy the table with wordtable_Destroy later.
  **************************************************************/
-extern bool wordtable_Load(const char *filename);
+extern bool wordTable_Load(const char *filename);
 
 /**********************************************************//**
  * @brief Destroys the initialized word table.
  **************************************************************/
-extern void wordtable_Destroy(void);
+extern void wordTable_Destroy(void);
 
 /**********************************************************//**
  * @brief Check if the word table is loaded.
  * @return Whether the word table has been initialized by a
  * call to wordtable_Load.
  **************************************************************/
-extern bool wordtable_IsValid(void);
+extern bool wordTable_IsValid(void);
 
 /**********************************************************//**
  * @brief Checks if a word is in the table.
  * @param what: The string to check if it is the table.
  * @return Whether the word is in the table.
  **************************************************************/
-extern bool wordtable_Contains(const char *what);
+extern bool wordTable_Contains(const char *what);
 
 /*============================================================*/
 #endif // _WORD_TABLE_H_
