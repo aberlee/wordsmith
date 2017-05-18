@@ -5,8 +5,8 @@
  **************************************************************/
 
 // Standard library
-#include <stdlib.h>     // malloc, srand
 #include <stdbool.h>    // bool
+#include <stdlib.h>     // malloc, free
 
 // Allegro
 #include <allegro5/allegro.h>
@@ -15,71 +15,70 @@
 
 // This project
 #include "debug.h"      // eprintf, assert
+#include "keyboard.h"   // KEY
 #include "frame.h"      // FRAME
-#include "keyboard.h"   // KEY_UP, KEY_DOWN ...
+
+//**************************************************************
+/// Rendering flags of the text.
+#define TEXT_FLAGS (ALLEGRO_ALIGN_LEFT | ALLEGRO_ALIGN_INTEGER)
+
+//**************************************************************
+/// Shared theme data for all frames.
+static THEME GlobalTheme;
 
 /*============================================================*
- * Shared theme data
+ * Global theme manipulation
  *============================================================*/
-static THEME theme;
-
-// Public theme setter
 void frame_SetTheme(const THEME *newTheme) {
-    memcpy(&theme, newTheme, sizeof(theme));
+    GlobalTheme = *newTheme;
 }
 
-// Public theme getter
 const THEME *frame_GetTheme(void) {
-    return &theme;
+    return &GlobalTheme;
 }
 
 /*============================================================*
  * Spacing data
  *============================================================*/
 int frame_GetLineHeight(int lines) {
-    int fontHeight = al_get_font_line_height(theme.font);
-    return (fontHeight + theme.spacing)*lines - theme.spacing;
+    int fontHeight = al_get_font_line_height(GlobalTheme.font);
+    return (fontHeight + GlobalTheme.spacing)*lines - GlobalTheme.spacing;
 }
 
 int frame_GetLineSpacing(void) {
-    return al_get_font_line_height(theme.font) + theme.spacing;
-}
-
-/// Rendering flags ofr the text.
-#define TEXT_FLAGS (ALLEGRO_ALIGN_LEFT | ALLEGRO_ALIGN_INTEGER)
-
-void frame_DrawText(int x, int y, const char *text) {
-    al_draw_text(theme.font, theme.foreground, x, y, TEXT_FLAGS, text);
+    return al_get_font_line_height(GlobalTheme.font) + GlobalTheme.spacing;
 }
 
 /*============================================================*
- * Outlined text
+ * Drawing text on the screen
  *============================================================*/
+void frame_DrawText(int x, int y, const char *text) {
+    al_draw_text(GlobalTheme.font, GlobalTheme.foreground, x, y, TEXT_FLAGS, text);
+}
+
 void frame_DrawOutlinedText(int x, int y, const char *text) {
-    
     // Construct the outline
-    al_draw_text(theme.font, theme.foreground, x-1, y, TEXT_FLAGS, text);
-    al_draw_text(theme.font, theme.foreground, x+1, y, TEXT_FLAGS, text);
-    al_draw_text(theme.font, theme.foreground, x, y-1, TEXT_FLAGS, text);
-    al_draw_text(theme.font, theme.foreground, x, y+1, TEXT_FLAGS, text);
+    al_draw_text(GlobalTheme.font, GlobalTheme.foreground, x-1, y, TEXT_FLAGS, text);
+    al_draw_text(GlobalTheme.font, GlobalTheme.foreground, x+1, y, TEXT_FLAGS, text);
+    al_draw_text(GlobalTheme.font, GlobalTheme.foreground, x, y-1, TEXT_FLAGS, text);
+    al_draw_text(GlobalTheme.font, GlobalTheme.foreground, x, y+1, TEXT_FLAGS, text);
     
     // Draw the actual text
-    al_draw_text(theme.font, theme.background, x, y, TEXT_FLAGS, text);
+    al_draw_text(GlobalTheme.font, GlobalTheme.background, x, y, TEXT_FLAGS, text);
 }
 
 /*============================================================*
  * Sizing frames
  *============================================================*/
 void frame_SetSize(FRAME *frame, int width, int height) {
-    
-    // Default
-    int delta = theme.outline + 2*theme.padding;
+    // Default padding
+    int delta = GlobalTheme.outline + 2*GlobalTheme.padding;
     frame->width = width + delta;
     frame->height = height + delta;
 
-    // Header
+    // Header padding
     if (frame->flags & FRAME_HEADER) {
-        frame->height += theme.header;
+        frame->height += GlobalTheme.header;
     }
 }
 
@@ -87,20 +86,19 @@ void frame_SetSize(FRAME *frame, int width, int height) {
  * Getting the draw origin in a frame
  *============================================================*/
 void frame_GetStart(const FRAME *frame, int *xo, int *yo) {
-    
     // Frame's claimed origin
-    *xo = frame->x + theme.padding;
-    *yo = frame->y + theme.padding;
+    *xo = frame->x + GlobalTheme.padding;
+    *yo = frame->y + GlobalTheme.padding;
     
     // Outlining
     if (frame->flags & FRAME_OUTLINE) {
-        *xo += theme.outline / 2;
-        *yo += theme.outline / 2;
+        *xo += GlobalTheme.outline / 2;
+        *yo += GlobalTheme.outline / 2;
     }
     
     // Offset for the header
     if (frame->flags & FRAME_HEADER) {
-        *yo += theme.header;
+        *yo += GlobalTheme.header;
     }
 }
 
@@ -108,17 +106,16 @@ void frame_GetStart(const FRAME *frame, int *xo, int *yo) {
  * Getting the draw end in a frame
  *============================================================*/
 void frame_GetEnd(const FRAME *frame, int *xf, int *yf) {
-    
     // Frame's claimed origin
-    *xf = frame->x + frame->width - theme.padding;
-    *yf = frame->y + frame->height - theme.padding;
+    *xf = frame->x + frame->width - GlobalTheme.padding;
+    *yf = frame->y + frame->height - GlobalTheme.padding;
     
     // Outlining
     if (frame->flags & FRAME_OUTLINE) {
         // Need to do this weird thing to ensure the integer division
         // balances out with the start padding and outline.
-        *xf -= theme.outline - (theme.outline / 2);
-        *yf -= theme.outline - (theme.outline / 2);
+        *xf -= GlobalTheme.outline - (GlobalTheme.outline / 2);
+        *yf -= GlobalTheme.outline - (GlobalTheme.outline / 2);
     }
 }
 
@@ -126,48 +123,69 @@ void frame_GetEnd(const FRAME *frame, int *xf, int *yf) {
  * Drawing frames
  *============================================================*/
 void frame_Draw(const FRAME *frame) {
-    
-    // Determine the origin point of the frame (upper left)
+    // Determine the actual frame bounding box
     int xo = frame->x;
     int yo = frame->y;
-    
-    // Determine the upper right
     int xf = xo + frame->width;
-    
-    // Determine the lower left
     int yf = yo + frame->height;
     
     // Draw the frame background
-    al_draw_filled_rectangle(xo, yo, xf, yf, theme.background);
+    al_draw_filled_rectangle(xo, yo, xf, yf, GlobalTheme.background);
     
     // Draw the frame outline
     if (frame->flags & FRAME_OUTLINE) {
-        al_draw_rectangle(xo, yo, xf, yf, theme.foreground, theme.outline);
+        al_draw_rectangle(xo, yo, xf, yf, GlobalTheme.foreground, GlobalTheme.outline);
     }
     
     // Draw the frame header
     int hxo, hxf, hyo, hyf;
     if (frame->flags & FRAME_HEADER) {
         if (frame->flags & FRAME_OUTLINE) {
-            hxo = xo + theme.outline / 2;
-            hxf = xf - (theme.outline - theme.outline / 2);
-            hyo = yo + theme.outline / 2;
-            hyf = hyo + theme.header;
+            hxo = xo + GlobalTheme.outline / 2;
+            hxf = xf - (GlobalTheme.outline - GlobalTheme.outline / 2);
+            hyo = yo + GlobalTheme.outline / 2;
+            hyf = hyo + GlobalTheme.header;
         } else {
             hxo = xo;
             hxf = xf;
             hyo = yo;
-            hyf = hyo + theme.header;
+            hyf = hyo + GlobalTheme.header;
         }
-        al_draw_filled_rectangle(hxo, hyo, hxf, hyf, theme.highlight);
+        al_draw_filled_rectangle(hxo, hyo, hxf, hyf, GlobalTheme.highlight);
     }
+}
+
+/*============================================================*
+ * Text frame sizing
+ *============================================================*/
+int textFrame_Width(const TEXT_FRAME *frame) {
+    // Dynamic width sizing
+    if (frame->flags & FRAME_DYNAMIC_WIDTH) {
+        // Get the maximum width of all the strings, including
+        // the maximum frame width (set to 0 to exclude).
+        int maxFontWidth = frame->maxWidth;
+        for (int line = 0; line < frame->lines; line++) {
+            int temp = al_get_text_width(GlobalTheme.font, frame->data[line].text);
+            if (temp > maxFontWidth) {
+                maxFontWidth = temp;
+            }
+        }
+        return maxFontWidth;
+    }
+    
+    // Static width sizing
+    return frame->maxWidth;
+}
+
+int textFrame_Height(const TEXT_FRAME *frame) {
+    int fontHeight = al_get_font_line_height(GlobalTheme.font);
+    return (fontHeight + GlobalTheme.spacing)*frame->lines - GlobalTheme.spacing;
 }
 
 /*============================================================*
  * Drawing text frames
  *============================================================*/
-void textframe_Draw(const TEXT_FRAME *frame) {
-    
+void textFrame_Draw(const TEXT_FRAME *frame) {
     // Get the frame's area
     FRAME base;
     base.x = frame->x;
@@ -175,23 +193,11 @@ void textframe_Draw(const TEXT_FRAME *frame) {
     base.flags = frame->flags;
     
     // Get the base frame width
-    int width;
-    if (frame->flags & FRAME_DYNAMIC_WIDTH) {
-        // Get the maximum width of all the strings
-        int fontWidth=0, temp;
-        for (int line = 0; line < frame->lines; line++) {
-            if ((temp = al_get_text_width(theme.font, frame->data[line].text)) > fontWidth) {
-                fontWidth = temp;
-            }
-        }
-        width = fontWidth;
-    } else {
-        width = frame->maxWidth;
-    }
+    int width = textFrame_Width(frame);
     
     // Get the base frame height
-    int fontHeight = al_get_font_line_height(theme.font);
-    int height = (fontHeight + theme.spacing)*frame->lines - theme.spacing;
+    int fontHeight = al_get_font_line_height(GlobalTheme.font);
+    int height = textFrame_Height(frame);
     
     // Draw the base frame
     frame_SetSize(&base, width, height);
@@ -204,7 +210,7 @@ void textframe_Draw(const TEXT_FRAME *frame) {
     frame_GetEnd(&base, &xf, &yf);
     
     // Determine other drawing parameters.
-    int dy = fontHeight + theme.spacing;
+    int dy = fontHeight + GlobalTheme.spacing;
     
     // Draw all the text
     int textFlags = 0;
@@ -215,20 +221,20 @@ void textframe_Draw(const TEXT_FRAME *frame) {
         
         // Get the text color
         if (textFlags & ENTRY_DISABLED) {
-            color = theme.disabled;
+            color = GlobalTheme.disabled;
         } else if (textFlags & ENTRY_HIGHLIGHT) {
-            color = theme.highlight;
+            color = GlobalTheme.highlight;
         } else {
-            color = theme.foreground;
+            color = GlobalTheme.foreground;
         }
         
         // Draw the entry and selection bar
         // To center the text in the selection perfectly we need to add 1 to xo
         if (textFlags & ENTRY_SELECTED) {
             al_draw_filled_rectangle(xo, y, xf, y+fontHeight, color);
-            al_draw_text(theme.font, theme.background, xo+1, y+1, TEXT_FLAGS, frame->data[line].text);
+            al_draw_text(GlobalTheme.font, GlobalTheme.background, xo+1, y+1, TEXT_FLAGS, frame->data[line].text);
         } else {
-            al_draw_text(theme.font, color, xo+1, y+1, TEXT_FLAGS, frame->data[line].text);
+            al_draw_text(GlobalTheme.font, color, xo+1, y+1, TEXT_FLAGS, frame->data[line].text);
         }
         y += dy;
     }
@@ -251,100 +257,108 @@ void menu_Reset(MENU *menu) {
 }
 
 /*============================================================*
+ * Mapping MENU to TEXT_FRAME
+ *============================================================*/
+static inline void MenuToTextFrame(TEXT_FRAME *frame, const MENU *menu) {
+    frame->x = menu->x;
+    frame->y = menu->y;
+    frame->maxWidth = menu->maxWidth;
+    frame->lines = menu->lines;
+    frame->flags = menu->flags;
+    
+    // Determine the subset of data to display.
+    frame->data = &menu->data[menu->scroll];
+}
+
+/*============================================================*
+ * Menu sizing
+ *============================================================*/
+int menu_Width(const MENU *menu) {
+    TEXT_FRAME base;
+    MenuToTextFrame(&base, menu);
+    return textFrame_Width(&base);
+}
+
+int menu_Height(const MENU *menu) {
+    TEXT_FRAME base;
+    MenuToTextFrame(&base, menu);
+    return textFrame_Height(&base);
+}
+
+/*============================================================*
  * Drawing menus
  *============================================================*/
 void menu_Draw(const MENU *menu) {
-    
-    // Determine the text frame to draw
     TEXT_FRAME base;
-    base.x = menu->x;
-    base.y = menu->y;
-    base.maxWidth = menu->maxWidth;
-    base.lines = menu->lines;
-    base.flags = menu->flags;
-    
-    // Determine the subset of data to display.
-    base.data = &menu->data[menu->scroll];
-
-    // Draw the frame
-    textframe_Draw(&base);
+    MenuToTextFrame(&base, menu);
+    textFrame_Draw(&base);
 }
 
 /*============================================================*
  * Menu execution
  *============================================================*/
-int menu_Run(MENU *menu, const ALLEGRO_EVENT *event) {
-    
+MENU_STATUS menu_Run(MENU *menu, MENU_ACTION action) {
     // The currently selected item
     int current = menu->scroll + menu->cursor;
     int maxScroll = menu->maxLines - menu->lines + 1;
     int maxCursor = menu->lines - 1;
     
-    // Key press handler
-    switch (event->type) {
-    case ALLEGRO_EVENT_KEY_DOWN:
-    case ALLEGRO_EVENT_KEY_CHAR:
-        // Received a keyboard event
-        switch (event->keyboard.keycode) {
-        case KEY_UP:
-            if (menu->cursor > 0) {
-                // Move the cursor up
-                menu->cursor--;
-                menu->data[current].flags &= ~ENTRY_SELECTED;
-                menu->data[current-1].flags |= ENTRY_SELECTED;
-                
-            } else if (menu->scroll > 0) {
-                // Cursor already at the top, scroll up
-                menu->scroll--;
+    // Received a keyboard event
+    switch (action) {
+    case MENU_ACTION_UP:
+        if (menu->cursor > 0) {
+            // Move the cursor up
+            menu->cursor--;
+            menu->data[current].flags &= ~ENTRY_SELECTED;
+            menu->data[current-1].flags |= ENTRY_SELECTED;
             
-            } else if (menu->flags & FRAME_LOOP) {
-                // Loop around to the end of the menu
-                menu->cursor = maxCursor;
-                menu->scroll = maxScroll;
-            }
-            return MENU_CONTINUE;
+        } else if (menu->scroll > 0) {
+            // Cursor already at the top, scroll up
+            menu->scroll--;
         
-        case KEY_DOWN:
-            if (menu->cursor < maxCursor) {
-                // Move the cursor down
-                menu->cursor++;
-                menu->data[current].flags &= ~ENTRY_SELECTED;
-                menu->data[current+1].flags |= ENTRY_SELECTED;
-                
-            } else if (menu->scroll < maxScroll) {
-                // Cursor already at bottom, scroll down
-                menu->scroll++;
-            
-            } else if (menu->flags & FRAME_LOOP) {
-                // Loop around to the top
-                menu->cursor = 0;
-                menu->scroll = 0;
-            }
-            return MENU_CONTINUE;
-            
-        case KEY_A:
-            // Index chosen!
-            if (menu->data[current].flags & ENTRY_DISABLED) {
-                // The item can't be chosen!
-                return MENU_CONTINUE;
-            }
-            return current;
-            
-        case KEY_B:
-            // Menu cancelled.
-            if (menu->flags & FRAME_CANCEL) {
-                return MENU_CANCEL;
-            }
-            return MENU_CONTINUE;
-        
-        default:
-            // Unregistered key handled.
-            return MENU_CONTINUE;
+        } else if (menu->flags & FRAME_LOOP) {
+            // Loop around to the end of the menu
+            menu->cursor = maxCursor;
+            menu->scroll = maxScroll;
         }
+        return MENU_STATUS_CONTINUE;
+    
+    case MENU_ACTION_DOWN:
+        if (menu->cursor < maxCursor) {
+            // Move the cursor down
+            menu->cursor++;
+            menu->data[current].flags &= ~ENTRY_SELECTED;
+            menu->data[current+1].flags |= ENTRY_SELECTED;
+            
+        } else if (menu->scroll < maxScroll) {
+            // Cursor already at bottom, scroll down
+            menu->scroll++;
+        
+        } else if (menu->flags & FRAME_LOOP) {
+            // Loop around to the top
+            menu->cursor = 0;
+            menu->scroll = 0;
+        }
+        return MENU_STATUS_CONTINUE;
+        
+    case MENU_ACTION_YES:
+        // Index chosen!
+        if (menu->data[current].flags & ENTRY_DISABLED) {
+            // The item can't be chosen!
+            return MENU_STATUS_CONTINUE;
+        }
+        return MENU_STATUS_CONFIRM;
+        
+    case MENU_ACTION_NO:
+        // Menu cancelled.
+        if (menu->flags & FRAME_CANCEL) {
+            return MENU_STATUS_CANCEL;
+        }
+        return MENU_STATUS_CONTINUE;
     
     default:
-        // Unregistered event handled.
-        return MENU_CONTINUE;
+        // Unregistered key handled.
+        return MENU_STATUS_CONTINUE;
     }
 }
 
