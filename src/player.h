@@ -13,10 +13,7 @@
 #include "word.h"       // WORD, MAX_WORD_LENGTH
 #include "battle.h"     // TEAM_SIZE
 
-/*============================================================*
- * Constants
- *============================================================*/
-
+//**************************************************************
 /// The maximum number of words a player can own.
 #define MAX_WORDS 100
 
@@ -29,7 +26,6 @@
  * @brief Contains all the player's game data.
  **************************************************************/
 typedef struct {
-    
     // Words owned by the player
     WORD words[MAX_WORDS];  ///< Actual word data.
     int team[TEAM_SIZE];    ///< Words in the player's team.
@@ -45,7 +41,6 @@ typedef struct {
     // User resources.
     int letters;    ///< Letters the user can spend to make words.
     int gold;       ///< Money the user can spend.
-    
 } PLAYER;
 
 /**********************************************************//**

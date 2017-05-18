@@ -45,7 +45,6 @@ static inline void team_ClearFieldEffects(TEAM *team) {
  * Team initialization
  *============================================================*/
 bool team_Create(TEAM *team, WORD **words, int size) {
-    
     // Initialize a team given an array of 3 or less words
     if (size > TEAM_SIZE || size <= 0) {
         eprintf("Invalid number of words for a team: %d\n", size);
@@ -75,7 +74,6 @@ bool team_Create(TEAM *team, WORD **words, int size) {
  * @return Whether the switch succeeded.
  **************************************************************/
 static bool team_SwitchActiveWord(TEAM *team, int index) {
-    
     // Get the next word
     if (index <= 0 || index >= team->nWords) {
         eprintf("Invalid switch-in index: %d\n", index);
@@ -138,7 +136,6 @@ static int team_ChangeBoost(TEAM *team, STAT stat, int delta) {
  * @return The value of the stat.
  **************************************************************/
 static int team_GetBoostedStat(const TEAM *team, STAT stat) {
-    
     // Apply boost
     int unboosted = team->words[ACTIVE_WORD]->stat[stat];
     int boost = team->statBoosts[stat];
@@ -147,13 +144,13 @@ static int team_GetBoostedStat(const TEAM *team, STAT stat) {
     // Determine if there is a global field effect.
     int field = -1;
     switch (stat) {
-    case ATTACK:
+    case STAT_ATTACK:
         field = FIELD_ATTACK;
         break;
-    case DEFEND:
+    case STAT_DEFEND:
         field = FIELD_DEFEND;
         break;
-    case SPEED:
+    case STAT_SPEED:
         field = FIELD_SPEED;
         break;
     default:
@@ -180,7 +177,6 @@ static int team_GetBoostedStat(const TEAM *team, STAT stat) {
  * @param team: The team to check.
  **************************************************************/
 static void team_AdvanceEffects(TEAM *team) {
-    
     // Advance all the word effects
     for (int i = 0; i < N_WORD_EFFECTS; i++) {
         if (team->wordEffects[i] == EFFECT_EPHEMERAL) {
@@ -205,7 +201,6 @@ static void team_AdvanceEffects(TEAM *team) {
  * @param team: The team to charge.
  **************************************************************/
 void team_ChargeTechPoints(TEAM *team) {
-    
     // Team gets TP at the beginning of the turn
     int delta = CHARGE_TP;
     if (team->wordEffects[WORD_DOUBLE_TP] != 0) {

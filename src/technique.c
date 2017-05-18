@@ -21,16 +21,16 @@ static const TECHNIQUE_DATA TECHNIQUES[N_TECHNIQUES] = {
     },
     
     // Default techniques
-    [T_ATTACK] = {
-        .id=T_ATTACK,
+    [ATTACK] = {
+        .id=ATTACK,
         .name="Attack",
         .power=30,
         .cost=1,
         .description="A basic attack that damages the enemy.",
         .priority=PRI_NORMAL,
     },
-    [T_DEFEND] = {
-        .id=T_DEFEND,
+    [DEFEND] = {
+        .id=DEFEND,
         .name="Defend",
         .power=0,
         .cost=0,

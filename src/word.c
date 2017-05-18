@@ -20,32 +20,32 @@
  *============================================================*/
 /// Maps each letter (0-25) to the stat it's associated with.
 static const char LETTER_STATS[N_LETTERS] = {
-    MAXHP,  // A
-    DEFEND, // B
-    SPEED,  // C
-    DEFEND, // D
-    MAXHP,  // E
-    ATTACK, // F
-    DEFEND, // G
-    SPEED,  // H
-    MAXHP,  // I
-    ATTACK, // J
-    ATTACK, // K
-    SPEED,  // L
-    DEFEND, // M
-    SPEED,  // N
-    MAXHP,  // O
-    SPEED,  // P
-    SPEED,  // Q
-    ATTACK, // R
-    ATTACK, // S
-    DEFEND, // T
-    MAXHP,  // U
-    ATTACK, // V
-    DEFEND, // W
-    ATTACK, // X
-    MAXHP,  // Y
-    SPEED,  // Z
+    STAT_MAXHP,  // A
+    STAT_DEFEND, // B
+    STAT_SPEED,  // C
+    STAT_DEFEND, // D
+    STAT_MAXHP,  // E
+    STAT_ATTACK, // F
+    STAT_DEFEND, // G
+    STAT_SPEED,  // H
+    STAT_MAXHP,  // I
+    STAT_ATTACK, // J
+    STAT_ATTACK, // K
+    STAT_SPEED,  // L
+    STAT_DEFEND, // M
+    STAT_SPEED,  // N
+    STAT_MAXHP,  // O
+    STAT_SPEED,  // P
+    STAT_SPEED,  // Q
+    STAT_ATTACK, // R
+    STAT_ATTACK, // S
+    STAT_DEFEND, // T
+    STAT_MAXHP,  // U
+    STAT_ATTACK, // V
+    STAT_DEFEND, // W
+    STAT_ATTACK, // X
+    STAT_MAXHP,  // Y
+    STAT_SPEED,  // Z
 };
 
 /**********************************************************//**
@@ -102,22 +102,22 @@ static inline int StatCodon(STAT first, STAT second) {
 /// Mapping techniques from codons.
 static const TECHNIQUE TECHNIQUE_TABLE[N_CODONS][N_STACKS] = {
     // Health-dominant techniques
-    {HEAL, RECOVER},        // HH
-    {DRAIN, ANTI_HEAL},     // HA
-    {CURE, AURA},           // HD
-    {EMERGENCY, TEAM_HEAL}, // HS
+    {HEAL, RECOVER},                // HH
+    {DRAIN, ANTI_HEAL},             // HA
+    {CURE, AURA},                   // HD
+    {EMERGENCY, TEAM_HEAL},         // HS
     
     // Attack-dominant techniques
-    {SMASH, EXPLOSION},     // AH
-    {CHARGE, BREAK},        // AA
-    {STUN, BLUNT},          // AD
-    {WRAP, SLOW},           // AS
+    {SMASH, EXPLOSION},             // AH
+    {CHARGE, BREAK},                // AA
+    {STUN, BLUNT},                  // AD
+    {WRAP, SLOW},                   // AS
     
     // Defend-dominant techniques
-    {PROTECT, SLOW_SWITCH}, // DH
-    {TANK, RETALIATE},      // DA
-    {BOLSTER, SCREEN},      // DD
-    {SLOW_ATTACK, REFLECT}, // DS
+    {PROTECT, SLOW_SWITCH},         // DH
+    {TANK, RETALIATE},              // DA
+    {BOLSTER, SCREEN},              // DD
+    {SLOW_ATTACK, REFLECT},         // DS
     
     // Speed-dominant attacks
     {CONCENTRATE, STEAL},           // SH
@@ -134,7 +134,6 @@ static const TECHNIQUE TECHNIQUE_TABLE[N_CODONS][N_STACKS] = {
  * @return The technique or -1 on failure.
  **************************************************************/
 static int CodonTechnique(int codon, int stacks) {
-    
     // Error checking
     if (codon < 0 || codon >= N_CODONS) {
         eprintf("Invalid codon: %d\n", codon);
@@ -178,7 +177,6 @@ static inline int ExperienceNeeded(int n) {
  * Creating a word
  *============================================================*/
 bool word_Create(WORD *word, const char *text, int level) {
-    
     // Set word text
     int length = strlen(text);
     if (length < MIN_WORD_LENGTH || length > MAX_WORD_LENGTH) {
@@ -196,7 +194,11 @@ bool word_Create(WORD *word, const char *text, int level) {
     lowercase[length] = '\0';
     
     // Check if this is a real word (need to check lowercase)
-    word->isReal = wordtable_Contains(lowercase);
+    if (!wordTable_IsValid()) {
+        eprintf("Word table has not been initialized.\n");
+        return false;
+    }
+    word->isReal = wordTable_Contains(lowercase);
     
     // Set level
     if (level < MIN_LEVEL || level > MAX_LEVEL) {
@@ -285,7 +287,7 @@ bool word_Create(WORD *word, const char *text, int level) {
     }
     
     // Find the word rank.
-    int bst = word->base[MAXHP] + word->base[ATTACK] + word->base[DEFEND] + word->base[SPEED];
+    int bst = word->base[STAT_MAXHP] + word->base[STAT_ATTACK] + word->base[STAT_DEFEND] + word->base[STAT_SPEED];
     if (bst < 300) {
         word->rank = RANK_F;
     } else if (bst < 350) {
@@ -303,7 +305,7 @@ bool word_Create(WORD *word, const char *text, int level) {
     // Initialize stats
     word->expNeed = word->exp = ExperienceNeeded(level);
     word_UpdateStats(word);
-    word->hp = word->stat[MAXHP];
+    word->hp = word->stat[STAT_MAXHP];
     return true;
 }
 
@@ -312,7 +314,7 @@ bool word_Create(WORD *word, const char *text, int level) {
  *============================================================*/
 void word_ChangeCurrentHP(WORD *word, int delta) {
     int temp = word->hp + delta;
-    int max = word->stat[MAXHP];
+    int max = word->stat[STAT_MAXHP];
     int min = 0;
     if (temp > max) {
         word->hp = max;
