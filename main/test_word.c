@@ -12,13 +12,12 @@
 #include "debug.h"      // assert, eprintf
 #include "word.h"       // WORD
 #include "technique.h"  // TECHNIQUE_DATA
-#include "word_table.h" // WORd_TABLE
+#include "word_table.h" // WORD_TABLE
 
 /**********************************************************//**
  * @brief test driver method.
  **************************************************************/
 int main(int argc, char **argv) {
-    
     // Data
     WORD word;
     int level = 0;
@@ -39,7 +38,7 @@ int main(int argc, char **argv) {
     }
     
     // Get the word table
-    if (!wordtable_Load("data/words/english.txt")) {
+    if (!wordTable_Load("data/words/english.txt")) {
         eprintf("Failed to load word table.\n");
         return EXIT_FAILURE;
     }
@@ -84,11 +83,11 @@ int main(int argc, char **argv) {
     }
     
     // Print the stats
-    printf("Hp: %d/%d (%d)\n", word.hp, word.stat[MAXHP], word.base[MAXHP]);
-    printf("Attack: %d (%d)\n", word.stat[ATTACK], word.base[ATTACK]);
-    printf("Defend: %d (%d)\n", word.stat[DEFEND], word.base[DEFEND]);
-    printf("Speed: %d (%d)\n", word.stat[SPEED], word.base[SPEED]);
-    printf("BST: %d\n", word.base[MAXHP]+word.base[ATTACK]+word.base[DEFEND]+word.base[SPEED]);
+    printf("Hp: %d/%d (%d)\n", word.hp, word.stat[STAT_MAXHP], word.base[STAT_MAXHP]);
+    printf("Attack: %d (%d)\n", word.stat[STAT_ATTACK], word.base[STAT_ATTACK]);
+    printf("Defend: %d (%d)\n", word.stat[STAT_DEFEND], word.base[STAT_DEFEND]);
+    printf("Speed: %d (%d)\n", word.stat[STAT_SPEED], word.base[STAT_SPEED]);
+    printf("BST: %d\n", word.base[STAT_MAXHP]+word.base[STAT_ATTACK]+word.base[STAT_DEFEND]+word.base[STAT_SPEED]);
     
     // Print the techniques
     const TECHNIQUE_DATA *data;

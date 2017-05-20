@@ -15,9 +15,17 @@
 #include "technique.h"  // TECHNIQUE
 #include "word_table.h" // WORD_TABLE
 
-/*============================================================*
- * Letter stat table
- *============================================================*/
+//**************************************************************
+/// Initial base stat value.
+#define INITIAL_STAT 30
+
+/// Real-word base stat boost.
+#define REAL_BOOST 30
+
+/// Base stat boost when stacks are too large.
+#define OVERFLOW_BOOST 5
+
+//**************************************************************
 /// Maps each letter (0-25) to the stat it's associated with.
 static const char LETTER_STATS[N_LETTERS] = {
     STAT_MAXHP,  // A
@@ -55,23 +63,14 @@ static const char LETTER_STATS[N_LETTERS] = {
  * @return The stat associated to the letter or -1 on failure.
  **************************************************************/
 static int LetterStat(char letter) {
-    int index;
-
-    // Try lower case
-    index = letter - 'a';
+    // Assume input is in English
+    int index = tolower(letter) - 'a';
     if (index >= 0 && index < N_LETTERS) {
         return LETTER_STATS[index];
     }
     
-    // Try upper case
-    index = letter - 'A';
-    if (index >= 0 && index < N_LETTERS) {
-        return LETTER_STATS[index];
-    }
-    
-    // Failed to get the stat
-    eprintf("Invalid word letter: '%c'\n", letter);
-    return -1;
+    // Default to MAX HP if not a latin letter.
+    return STAT_MAXHP;
 }
 
 /**********************************************************//**
@@ -83,21 +82,14 @@ static int LetterStat(char letter) {
 static inline int StatCodon(STAT first, STAT second) {
     // Generates a codon from the two stat keys
     // Stat keys are 0, 1, 2, 3 (2 bits)
-    return (first << 2) | second;
+    return ((first & 3) << 2) | (second & 3);
 }
 
-// The total number of unique technique codons.
+/// The total number of unique technique codons.
 #define N_CODONS (N_STATS*N_STATS)
 
-// Codon stacks
-#define PRIMARY 0   // This is the primary technique for the codon.
-#define ADVANCED 1  // This is the secondary technique for the codon.
-
-// Total number of codon stacks.
+/// Total number of codon stacks.
 #define N_STACKS 2
-
-// Base stat boost when stacks are too large.
-#define STAT_BOOST 2
 
 /// Mapping techniques from codons.
 static const TECHNIQUE TECHNIQUE_TABLE[N_CODONS][N_STACKS] = {
@@ -134,24 +126,10 @@ static const TECHNIQUE TECHNIQUE_TABLE[N_CODONS][N_STACKS] = {
  * @return The technique or -1 on failure.
  **************************************************************/
 static int CodonTechnique(int codon, int stacks) {
-    // Error checking
-    if (codon < 0 || codon >= N_CODONS) {
-        eprintf("Invalid codon: %d\n", codon);
-        return -1;
-    }
-    
-    // Get the technique from the table
-    switch (stacks) {
-    case PRIMARY:
-        return TECHNIQUE_TABLE[codon][PRIMARY];
-        
-    case ADVANCED:
-        return TECHNIQUE_TABLE[codon][ADVANCED];
-    
-    default:
-        // Too many stacks applied, no further techniques!
+    if (stacks >= N_STACKS || stacks < 0) {
         return NONE;
     }
+    return TECHNIQUE_TABLE[codon][stacks];
 }
 
 /**********************************************************//**
@@ -230,9 +208,9 @@ bool word_Create(WORD *word, const char *text, int level) {
     int statAverage = 1 + (total + 3) / 4;
     
     // Get the initial base stat modifier
-    int initial = 40;
+    int initial = INITIAL_STAT;
     if (word->isReal) {
-        initial += 30;
+        initial += REAL_BOOST;
     }
     
     // Set initial base stats
@@ -245,7 +223,7 @@ bool word_Create(WORD *word, const char *text, int level) {
     int codon;
     int codonStacks[N_CODONS];
     for (int i = 0; i < N_CODONS; i++) {
-        codonStacks[i] = PRIMARY;
+        codonStacks[i] = 0;
     }
     
     // Read all codons
@@ -274,8 +252,8 @@ bool word_Create(WORD *word, const char *text, int level) {
         } else if (word->isReal) {
             // Only get these boosts for real words so we can prevent
             // spamming stuff like "aaaaaaaaaaaaaaaa"
-            word->base[first] += STAT_BOOST;
-            word->base[second] += STAT_BOOST;
+            word->base[first] += OVERFLOW_BOOST;
+            word->base[second] += OVERFLOW_BOOST;
         }
     }
     
