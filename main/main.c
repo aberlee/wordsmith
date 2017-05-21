@@ -20,6 +20,7 @@
 
 // This project
 #include "debug.h"          // eprintf, assert
+#include "window.h"         // window size
 #include "frame_rate.h"     // FrameRate
 #include "frame.h"          // FRAME
 #include "word_sprite.h"    // WORD_SPRITE
@@ -27,12 +28,6 @@
 #include "word_table.h"     // WORD_TABLE
 
 //*************************************************************
-/// The width of the display window in pixels.
-#define WINDOW_WIDTH 640
-
-/// The height of the display window in pixels.
-#define WINDOW_HEIGHT 320
-
 /// The frame rate of the game.
 #define FRAME_RATE 60.0
 
