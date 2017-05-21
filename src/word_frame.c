@@ -107,7 +107,7 @@ static ALLEGRO_COLOR HealthColor(float ratio) {
 /*============================================================*
  * Draw the word HUD
  *============================================================*/
-void wordFrame_DrawHud(const WORD *word, int x, int y, HUD_MODE mode) {
+void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode) {
     // Choose whether to draw experience or not
     switch (mode) {
     case HUD_EXTENDED:
