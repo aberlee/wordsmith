@@ -27,10 +27,10 @@ typedef struct {
     float rotation;         ///< Rotation in radians of the letter.
     float x;                ///< Letter X offset position.
     float y;                ///< Letter Y offset position.
-    float xv;
-    float yv;
-    float rv;
-    float sv;
+    float xv;               ///< X velocity.
+    float yv;               ///< Y velicity.
+    float rv;               ///< Rotational velocity.
+    float sv;               ///< Size velocity.
 } LETTER_SPRITE;
 
 /**********************************************************//**
@@ -46,6 +46,7 @@ typedef struct WORD_SPRITE {
     float x;                ///< Word origin X position.
     float y;                ///< Word origin Y position.
     float timer;            ///< Animation timer.
+    int counter;            ///< Animation letter counter.
     float transition;       ///< Transition scalar between animations.
     
     /// Current animation behavior.
