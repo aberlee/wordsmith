@@ -47,13 +47,9 @@ typedef struct WORD_SPRITE {
     float y;                ///< Word origin Y position.
     float timer;            ///< Animation timer.
     int counter;            ///< Animation letter counter.
-    float transition;       ///< Transition scalar between animations.
     
     /// Current animation behavior.
     bool (*animate)(struct WORD_SPRITE *sprite, float dt);
-    
-    /// Behavior to transition to or NULL.
-    bool (*next)(struct WORD_SPRITE *sprite, float dt);
 } WORD_SPRITE;
 
 /**********************************************************//**

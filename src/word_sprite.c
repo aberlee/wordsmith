@@ -18,12 +18,13 @@
 // This project
 #include "debug.h"      // assert, eprintf
 #include "random.h"     // uniform
+#include "window.h"     // window size
 #include "word.h"       // WORD
 #include "word_sprite.h"// WORD_SPRITE
 
 //**************************************************************
 #define SPACING 12      ///< Spacing between word letters.
-#define TRANSITION_TIME 0.2 ///< Length of an animation transition.
+#define TRANSITION_TIME 0.3 ///< Length of an animation transition.
 
 //**************************************************************
 /// Font to use when drawing words.
@@ -89,79 +90,15 @@ void wordSprite_Draw(const WORD_SPRITE *sprite) {
     al_use_transform(&old);
 }
 
-static inline float InterpolateAngle(float a, float b, float delta) {
-    // Restrict angles
-    float ma = fmod(a, 2*M_PI);
-    float mb = fmod(b, 2*M_PI);
-    
-    // Regular interpolation
-    if (ma < mb && mb-ma > M_PI) {
-        ma += 2*M_PI;
-    } else if (mb < ma && ma-mb > M_PI) {
-        mb += 2*M_PI;
-    }
-    return fmod(ma*delta + mb*(1-delta), 2*M_PI);
+static inline void ChangeAnimation(WORD_SPRITE *sprite, WORD_ANIMATION animate) {
+    printf("Change\n");
+    sprite->animate = animate;
+    sprite->timer = 0.0;
+    sprite->counter = 0;
 }
 
-/*============================================================*
- * Sprite animation
- *============================================================*/
-bool wordSprite_Update(WORD_SPRITE *sprite, float dt) {
-    // Exit transition check
-    if (sprite->next != NULL && sprite->transition+dt >= TRANSITION_TIME) {
-        sprite->timer = 0.0;
-        sprite->transition = 0.0;
-        sprite->counter = 0;
-        sprite->animate = sprite->next;
-        sprite->next = NULL;
-    }
-    
-    // Not a transition phase, animate as usual.
-    if (sprite->next == NULL) {
-        bool ret = sprite->animate(sprite, dt);
-        sprite->timer += dt;
-        return ret;
-    }
-    
-    // Set up the copy timer to play from the beginning
-    WORD_SPRITE copy = *sprite;
-    copy.timer = 0.0;
-    
-    // Get animation transitions to interpolate
-    sprite->next(&copy, 0.0);
-    sprite->animate(sprite, 0.0);
-    sprite->transition += dt;
-    
-    // Interpolate the phases
-    float secondWeight = sprite->transition / TRANSITION_TIME;
-    float firstWeight = 1.0 - secondWeight;
-    for (int i = 0; i < sprite->nLetters; i++) {
-        // Get letters to interpolate
-        const LETTER_SPRITE *second = &copy.letters[i];
-        LETTER_SPRITE *first = &sprite->letters[i];
-        
-        // Interpolate animation stats
-        first->opacity = (first->opacity*firstWeight) + (second->opacity*secondWeight);
-        first->scaling = (first->scaling*firstWeight) + (second->scaling*secondWeight);
-        first->rotation = InterpolateAngle(first->rotation, second->rotation, firstWeight);
-        first->x = (first->x*firstWeight) + (second->x*secondWeight);
-        first->y = (first->y*firstWeight) + (second->y*secondWeight);
-    }
-    return true;
-}
-
-static inline float Period(const WORD_SPRITE *sprite, float period) {
-    return fmod(sprite->timer, period) / period;
-}
-
-static inline float Tilt(const WORD_SPRITE *sprite, int index) {
-    return 2*(index / (float)(sprite->nLetters - 1)) - 1;
-}
-
-/*============================================================*
- * Resetting word
- *============================================================*/
-static void ResetSprite(WORD_SPRITE *sprite) {
+static inline void ResetSprite(WORD_SPRITE *sprite) {
+    printf("Reset\n");
     // Set initial X and Y positions
     for (int i = 0; i < sprite->nLetters; i++) {
         LETTER_SPRITE *current = &sprite->letters[i];
@@ -178,23 +115,40 @@ static void ResetSprite(WORD_SPRITE *sprite) {
 }
 
 /*============================================================*
+ * Sprite animation
+ *============================================================*/
+bool wordSprite_Update(WORD_SPRITE *sprite, float dt) {
+    sprite->timer += dt;
+    return sprite->animate(sprite, dt);
+}
+
+static inline float Period(const WORD_SPRITE *sprite, float period) {
+    return fmod(sprite->timer, period) / period;
+}
+
+static inline float Tilt(const WORD_SPRITE *sprite, int index) {
+    return 2*(index / (float)(sprite->nLetters - 1)) - 1;
+}
+
+static inline float IdleHeight(const WORD_SPRITE *sprite, int index) {
+    float period = Period(sprite, 1.0);
+    return 4*(1 + sin((period + index/16.0)*2*M_PI));
+}
+
+static inline bool SpriteAlignLeft(const WORD_SPRITE *sprite) {
+    return sprite->x <= WINDOW_WIDTH/2.0;
+}
+
+/*============================================================*
  * Idle animation
  *============================================================*/
-static bool AnimateCircle(WORD_SPRITE *sprite, float dt);
- 
 static bool AnimateIdle(WORD_SPRITE *sprite, float dt) {
     (void)dt;
     
-    // Reset all the letters to begin
-    if (sprite->timer == 0.0) {
-        ResetSprite(sprite);
-    }
-    
     // Animate a sine wave for the motion.
-    float period = Period(sprite, 1.0);
     for (int i = 0; i < sprite->nLetters; i++) {
         LETTER_SPRITE *current = &sprite->letters[i];
-        current->y = 4*(1 + sin((period + i/16.0)*2*M_PI));
+        current->y = IdleHeight(sprite, i);
     }
     return true;
 }
@@ -226,7 +180,11 @@ static bool AnimateExplode(WORD_SPRITE *sprite, float dt) {
         float tilt = Tilt(sprite, i);
         
         // Initialize random explosion if first time.
-        if (phase == 0.0) {
+        if (sprite->counter == 0) {
+            current->x = 0.0;
+            current->y = IdleHeight(sprite, i);
+            current->scaling = 1.0;
+            current->rotation = 0.0;
             current->xv = (tilt + uniform(-0.5, 0.5))*16;
             current->yv = (2-fabs(tilt))*48;
             current->sv = uniform(-0.5, 0.5);
@@ -248,30 +206,7 @@ static bool AnimateExplode(WORD_SPRITE *sprite, float dt) {
             current->yv *= -0.8;
         }
     }
-    return true;
-}
-
-/*============================================================*
- * Circling animation
- *============================================================*/
-static bool AnimateCircle(WORD_SPRITE *sprite, float dt) {
-    (void)dt;
-    
-    // Reset all the letters to begin
-    if (sprite->timer == 0.0) {
-        ResetSprite(sprite);
-    }
-    
-    // Animate a sine wave for the motion.
-    float period = Period(sprite, 1.0);
-    for (int i = 0; i < sprite->nLetters; i++) {
-        LETTER_SPRITE *current = &sprite->letters[i];
-        float theta = (period + i/(float)sprite->nLetters)*2*M_PI;
-        float radius = 32.0;
-        current->x = radius*cos(theta) - Offset(sprite, i);
-        current->y = radius*sin(theta) + radius;
-        current->rotation = -theta - M_PI/2;
-    }
+    sprite->counter = 1;
     return true;
 }
 
@@ -280,12 +215,6 @@ static bool AnimateCircle(WORD_SPRITE *sprite, float dt) {
  *============================================================*/
 static bool AnimateJump(WORD_SPRITE *sprite, float dt) {
     // Stop jumping check.
-    float phase = sprite->timer;
-    if (phase == 0.0) {
-        ResetSprite(sprite);
-    }
-    
-    // Animate the word jumping.
     int nDown = 0;
     for (int i = 0; i < sprite->nLetters; i++) {
         // Get the letter
@@ -293,27 +222,67 @@ static bool AnimateJump(WORD_SPRITE *sprite, float dt) {
         
         // Make letters jump one-by-one.
         // This depends on the time step precision.
-        if (i == sprite->counter && phase > i*0.05) {
-            current->yv = 48;
+        if (i == sprite->counter && sprite->timer > i*0.05) {
+            current->yv = 32;
             sprite->counter++;
         }
         
         // Update letter with Eulerian timestep
-        current->y += 2*current->yv*dt;
+        current->y += 4*current->yv*dt;
         current->yv -= 128*dt;
         
-        // Floor collision
-        if (current->y <= 0.0) {
-            current->y = 0.0;
+        // Floor collision (coincide with idle animation)
+        float idle = IdleHeight(sprite, i);
+        if (current->y <= idle) {
+            current->y = idle;
             nDown++;
         }
     }
     
     // Stop animating check
     if (sprite->counter >= sprite->nLetters && nDown == sprite->nLetters) {
-        sprite->next = &AnimateIdle;
+        ChangeAnimation(sprite, &AnimateIdle);
+        ResetSprite(sprite);
     }
     return true;
+}
+
+static bool AnimateEscape(WORD_SPRITE *sprite, float dt) {
+    // Animation time
+    const float MAX_TIME = 2.0;
+    
+    // Escape location
+    float escapeX;
+    float escapeY = WINDOW_HEIGHT/2.0;
+    if (SpriteAlignLeft(sprite)) {
+        escapeX = 0.0;
+    } else {
+        escapeX = WINDOW_WIDTH;
+    }
+    
+    // Escape animation
+    for (int i = 0; i < sprite->nLetters; i++) {
+        // Get the letter
+        LETTER_SPRITE *current = &sprite->letters[i];
+        
+        // Make letters jump one-by-one.
+        // This depends on the time step precision.
+        if (i == sprite->counter && sprite->timer > i*0.1) {
+            current->xv = (escapeX - (sprite->x + current->x + Offset(sprite, i))) / MAX_TIME;
+            current->yv = (escapeY - (sprite->y + IdleHeight(sprite, i))) / MAX_TIME;
+            current->rv = current->xv / 16.0;
+            current->sv = -0.1;
+            sprite->counter++;
+        }
+        
+        // Update letter with Eulerian timestep
+        current->rotation += current->rv*dt;
+        current->scaling += current->sv*dt;
+        current->opacity = 1.0 - (sprite->timer/MAX_TIME);
+        current->x += 2*current->xv*dt;
+        current->y += 2*current->yv*dt;
+    }
+    return sprite->timer < MAX_TIME;
 }
 
 /*============================================================*
@@ -323,24 +292,19 @@ void wordSprite_Load(WORD_SPRITE *sprite, float x, float y, const WORD *word) {
     // Load each letter
     int length = strlen(word->text);
     for (int i = 0; i < length; i++) {
-        // Set letter data
         sprite->letters[i].letter = word->text[i];
-        sprite->letters[i].opacity = 1.0;
-        sprite->letters[i].scaling = 1.0;
-        sprite->letters[i].rotation = 0.0;
-        sprite->letters[i].x = 0;
-        sprite->letters[i].y = 0;
     }
     
     // Set constant data
     sprite->nLetters = length;
     sprite->x = x;
     sprite->y = y;
-    sprite->animate = &AnimateJump;
-    sprite->next = NULL;
+    sprite->animate = &AnimateEscape;
     sprite->timer = 0.0;
     sprite->counter = 0;
-    sprite->transition = 0.0;
+    
+    // Reset sprite
+    ResetSprite(sprite);
 }
 
 /*============================================================*/

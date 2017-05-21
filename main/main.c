@@ -158,8 +158,13 @@ static bool update(float dt) {
     // Record the frame for frame rate
     RegisterFrame();
     
+    // Continue updating
+    static bool ct = true;
+    
     // Update the sprites
-    wordSprite_Update(&Sprite, dt);
+    if (ct) {
+        ct = wordSprite_Update(&Sprite, dt);
+    }
     return true;
 }
 
