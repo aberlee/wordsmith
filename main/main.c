@@ -34,11 +34,14 @@
 #define WINDOW_HEIGHT 320
 
 /// The frame rate of the game.
-#define FRAME_RATE 60
+#define FRAME_RATE 60.0
 
 //*************************************************************
 /// Debugging font.
 static ALLEGRO_FONT *GlobalDebugFont;
+
+static WORD Word;
+static WORD_SPRITE Sprite;
 
 /**********************************************************//**
  * @brief Program setup function.
@@ -48,7 +51,7 @@ static ALLEGRO_FONT *GlobalDebugFont;
  **************************************************************/
 static bool setup(void) {
     // Random number generator setup
-    srand(42);
+    srand(time(NULL));
 
     // Allegro setup
     if (!al_init()) {
@@ -110,11 +113,23 @@ static bool setup(void) {
     
     // System setup
     GlobalDebugFont = al_load_ttf_font("data/font/wordsmith.ttf", 16, ALLEGRO_TTF_MONOCHROME);
+    if (!GlobalDebugFont) {
+        eprintf("Failed to load system debug font.\n");
+        return false;
+    }
     
     // Not error checking these because the effect will be
     // obvious if a resource is missing.
     wordSprite_Initialize();
     wordFrame_Initialize();
+    
+    // Game initialization
+    if (!word_Create(&Word, "explosion", 69)) {
+        eprintf("Unable to fuck.\n");
+        return false;
+    }
+    wordSprite_Load(&Sprite, 100, 100, &Word);
+    
     return true;
 }
 
@@ -135,16 +150,21 @@ static void render(void) {
     char buf[64];
     sprintf(buf, "%0.1lf FPS", FrameRate());
     al_draw_text(GlobalDebugFont, al_map_rgb(255, 255, 255), 1, 1, ALLEGRO_ALIGN_LEFT, buf);
+    
+    // Render stats
+    //wordFrame_DrawHUD(&Word, 10, 10, HUD_BASIC);
+    wordSprite_Draw(&Sprite);
 }
 
 /**********************************************************//**
  * @brief Update loop function.
  **************************************************************/
 static bool update(float dt) {
-    (void)dt;
-    
     // Record the frame for frame rate
     RegisterFrame();
+    
+    // Update the sprites
+    wordSprite_Update(&Sprite, dt);
     return true;
 }
 
@@ -209,7 +229,7 @@ int main(int argc, char **argv) {
         case ALLEGRO_EVENT_TIMER:
             // Compute the time step and update
             current = al_get_time();
-            running = update(current - previous);
+            running = update(current-previous);
             previous = current;
             redraw = true;
             break;
