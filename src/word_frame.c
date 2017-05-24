@@ -19,6 +19,7 @@
 #include "word.h"           // WORD
 #include "word_frame.h"     // HUD_MODE
 
+
 //**************************************************************
 /// Basic WORD HUD display.
 static ALLEGRO_BITMAP *GlobalHUD;

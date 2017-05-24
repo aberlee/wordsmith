@@ -12,6 +12,11 @@
 // This project
 #include "word.h"       // WORD
 
+#define WORD_HUD_WIDTH 172
+#define WORD_HUD_HEIGHT_BASIC 32
+#define WORD_HUD_HEIGHT_EXTENDED 39
+#define WORD_HUD_HEIGHT_FULL 98
+
 /**********************************************************//**
  * @enum HUD_MODE
  * @brief Rendering mode for the HUD.

@@ -26,6 +26,8 @@
 #include "word_sprite.h"    // WORD_SPRITE
 #include "word_frame.h"     // WORD_FRAME
 #include "word_table.h"     // WORD_TABLE
+#include "player.h"
+#include "player_frame.h"
 
 //*************************************************************
 /// The frame rate of the game.
@@ -37,6 +39,9 @@ static ALLEGRO_FONT *GlobalDebugFont;
 
 static WORD Word;
 static WORD_SPRITE Sprite;
+
+static PLAYER Player;
+static TEAM_MENU TeamMenu;
 
 /**********************************************************//**
  * @brief Program setup function.
@@ -119,11 +124,22 @@ static bool setup(void) {
     wordFrame_Initialize();
     
     // Game initialization
-    if (!word_Create(&Word, "explosion", 69)) {
-        eprintf("Unable to fuck.\n");
+    if (!player_Create(&Player, "Wes")) {
+        eprintf("Unable to initialize player data.\n");
         return false;
     }
-    wordSprite_Load(&Sprite, 100, 100, &Word);
+    
+    // Add words
+    WORD word;
+    word_Create(&word, "First", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Second", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Third", 10);
+    player_AddWord(&Player, &word);
+    
+    // Set up team menu
+    playerFrame_CreateTeam(&TeamMenu, &Player);
     
     return true;
 }
@@ -147,8 +163,7 @@ static void render(void) {
     al_draw_text(GlobalDebugFont, al_map_rgb(255, 255, 255), 1, 1, ALLEGRO_ALIGN_LEFT, buf);
     
     // Render stats
-    //wordFrame_DrawHUD(&Word, 10, 10, HUD_BASIC);
-    wordSprite_Draw(&Sprite);
+    playerFrame_DrawTeam(&TeamMenu);
 }
 
 /**********************************************************//**
@@ -158,14 +173,24 @@ static bool update(float dt) {
     // Record the frame for frame rate
     RegisterFrame();
     
-    // Continue updating
-    static bool ct = true;
-    
-    // Update the sprites
-    if (ct) {
-        ct = wordSprite_Update(&Sprite, dt);
-    }
+    playerFrame_UpdateTeam(&TeamMenu, dt);
     return true;
+}
+
+static void keyboard(int key, bool down) {
+    if (key == ALLEGRO_KEY_UP) {
+        if (down) {
+            playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_UP);
+        } else {
+            playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_NEUTRAL);
+        }
+    } else if (key == ALLEGRO_KEY_DOWN) {
+        if (down) {
+            playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_DOWN);
+        } else {
+            playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_NEUTRAL);
+        }
+    }
 }
 
 /**********************************************************//**
@@ -238,6 +263,14 @@ int main(int argc, char **argv) {
             running = false;
             break;
         
+        case ALLEGRO_EVENT_KEY_DOWN:
+            keyboard(event.keyboard.keycode, true);
+            break;
+        
+        case ALLEGRO_EVENT_KEY_UP:
+            keyboard(event.keyboard.keycode, false);
+            break;
+            
         default:
             break;
         }
