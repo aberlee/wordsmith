@@ -17,9 +17,6 @@
  * Creating a player
  *============================================================*/
 bool player_Create(PLAYER *player, const char *username) {
-    // Zero out the struct
-    memset(&player, 0, sizeof(PLAYER));
-    
     // Set up player username
     int length = strlen(username);
     if (length < MIN_USERNAME_LENGTH || length > MAX_USERNAME_LENGTH) {
@@ -31,7 +28,6 @@ bool player_Create(PLAYER *player, const char *username) {
     // Initialize player stats to empty
     player->nWords = 0;
     player->nTeam = 0;
-    player->nBox = 0;
     return true;
 }
 
@@ -39,169 +35,80 @@ bool player_Create(PLAYER *player, const char *username) {
  * Adding words
  *============================================================*/
 bool player_AddWord(PLAYER *player, const WORD *word) {
-    
     // Can't add any more?
-    assert(player->nWords == player->nTeam+player->nBox);
     if (player->nWords >= MAX_WORDS) {
         eprintf("The player already has too many words.\n");
         return false;
     }
     
     // Copy word into player's list.
-    // This assumes the words, team, and box lists are not
-    // porous - maintain this invariant through all functions!
     int index = player->nWords;
-    player->words[player->nWords++] = *word;
+    player->words[index] = *word;
+    player->nWords++;
     
-    // Check if the words should be automatically added to
-    // the team or placed in the box.
+    // Add word to the team if necessary.
     if (player->nTeam < TEAM_SIZE) {
         player->team[player->nTeam++] = index;
-    } else {
-        assert(player->nBox < MAX_WORDS);
-        player->box[player->nBox++] = index;
     }
     return true;
+}
+
+static inline void RemoveFromTeam(PLAYER *player, int index) {
+    for (int i = 0; i < player->nTeam; i++) {
+        if (player->team[i] == index) {
+            while (i < player->nTeam-1) {
+                player->team[i] = player->team[i+1];
+            }
+            player->nTeam--;
+            break;
+        }
+    }
 }
 
 /*============================================================*
  * Removing words
  *============================================================*/
-bool player_RemoveWord(PLAYER *player, const WORD *word) {
-    
-    // Get the index of the word. Catss ptrdiff_t to int
-    int index = (int)(word - &player->words[0]);
+bool player_RemoveWord(PLAYER *player, int index) {
+    // Delete the current word
     if (index < 0 || index >= player->nWords) {
-        eprintf("Word doesn't belong to the player.\n");
+        eprintf("Word not found in player's team.\n");
         return false;
     }
     
-    // Swap the last word with the excised index to maintain
-    // continuity. This means the last word's index changes
-    // to the current index. This might also remove a word from
-    // the team, in which case the last word should be placed in
-    // the box instead of in the team.
-    int lastIndex = player->nWords - 1;
-    if (lastIndex > 0 && lastIndex != index) {
-        // We have to shift down because there are still words
-        // left and we didn't remove the last word.
-        player->words[index] = player->words[lastIndex];
+    // Shift words in team up one
+    for (int i = index; i < player->nWords-1; i++) {
+        player->words[i] = player->words[i+1];
     }
     player->nWords--;
     
-    // Excise the word from the team if it is there.
-    bool wordInTeam = false;
+    // Reset pointers in the team
+    RemoveFromTeam(player, index);
     for (int i = 0; i < player->nTeam; i++) {
-        if (player->team[i] == index) {
-            // Need to shift team down by one.
-            while (i < player->nTeam-1) {
-                player->team[i] = player->team[i+1];
-                i++;
-            }
-            wordInTeam = true;
-            player->nTeam--;
-            break;
+        if (player->team[i] > index) {
+            player->team[i]--;
         }
     }
-
-    // Based on where the word was found, repair the data structures.
-    if (wordInTeam) {
-        // Repair the team because index points elsewhere now.
-        for (int i = 0; i < player->nTeam; i++) {
-            if (player->team[i] == lastIndex) {
-                player->team[i] = index;
-            }
-        }
-        
-    } else {
-        // Excise the word from the box.
-        bool wordInBox = false;
-        for (int i = 0; i < player->nBox; i++) {
-            if (player->box[i] == index) {
-                // Need to shift the box down by one
-                while (i < player->nBox-1) {
-                    player->box[i] = player->box[i+1];
-                    i++;
-                }
-                wordInBox = true;
-                player->nBox--;
-                break;
-            }
-        }
-        
-        // Problems
-        if (!wordInBox) {
-            eprintf("Failed to find the word in the team or in the box.\n");
-            return false;
-        }
-        
-        // Repair the box because index points elsewhere now.
-        for (int i = 0; i < player->nTeam; i++) {
-            if (player->box[i] == lastIndex) {
-                player->box[i] = index;
-            }
-        }
-    }
-    
-    // Done!
-    assert(player->nWords == player->nTeam+player->nBox);
     return true;
 }
 
 /*============================================================*
  * Swapping words
  *============================================================*/
-bool player_SwapWord(PLAYER *player, const WORD *word) {
+bool player_SwapWord(PLAYER *player, int index) {
+    // Swap from team to box?
+    if (player_TeamContainsWord(player, index)) {
+        RemoveFromTeam(player, index);
+        return true;
+    }
     
-    // Get the index of the word to swap.
-    int index = (int)(word - &player->words[0]);
-    if (index < 0 || index >= player->nWords) {
-        eprintf("Word doesn't belong to the player.\n");
+    // Check team capacity.
+    if (player->nTeam >= TEAM_SIZE) {
+        eprintf("Team is full.\n");
         return false;
     }
     
-    // Check where the word resides. Default behavior is to swap the
-    // word between the team and the box.
-    int teamIndex = -1;
-    for (int i = 0; i < player->nTeam; i++) {
-        if (player->team[i] == index) {
-            teamIndex = i;
-            break;
-        }
-    }
-    
-    // Check where the word resides in the box
-    int boxIndex = -1;
-    if (teamIndex == -1) {
-        for (int i = 0; i < player->nBox; i++) {
-            if (player->box[i] == index) {
-                boxIndex = i;
-                break;
-            }
-        }
-    }
-    
-    // Perform the swap
-    if (teamIndex == -1 && boxIndex == -1) {
-        eprintf("Word not in team or box.\n");
-        return false;
-        
-    } else if (teamIndex == -1 && player->nTeam < TEAM_SIZE) {
-        // Word in box: Move into team and repair box.
-        player->team[player->nTeam++] = index;
-        for (int i = boxIndex; i < player->nBox-1; i++) {
-            player->box[i] = player->box[i+1];
-        }
-        player->nBox--;
-        
-    } else if (boxIndex == -1 && player->nBox < MAX_WORDS) {
-        // Word in team: Move into box and repair team
-        player->box[player->nBox++] = index;
-        for (int i = teamIndex; i < player->nTeam; i++) {
-            player->team[i] = player->team[i+1];
-        }
-        player->nTeam--;
-    }
+    // Swap from box to team.
+    player->team[player->nTeam++] = index;
     return true;
 }
 
