@@ -33,6 +33,14 @@ typedef struct {
     float sv;               ///< Size velocity.
 } LETTER_SPRITE;
 
+typedef enum {
+    WORD_ANIMATE_IDLE,
+    WORD_ANIMATE_DIE,
+    WORD_ANIMATE_EXIT,
+    WORD_ANIMATE_ENTER,
+    WORD_ANIMATE_ACTION,
+} WORD_ANIMATION;
+
 /**********************************************************//**
  * @struct WORD_SPRITE
  * @brief Defines how the word is displayed on the screen.
@@ -45,21 +53,12 @@ typedef struct WORD_SPRITE {
     // Overall position
     float x;                ///< Word origin X position.
     float y;                ///< Word origin Y position.
-    float timer;            ///< Animation timer.
-    int counter;            ///< Animation letter counter.
     
     /// Current animation behavior.
-    bool (*animate)(struct WORD_SPRITE *sprite, float dt);
+    WORD_ANIMATION animate;
+    float timer;            ///< Animation timer.
+    int counter;            ///< Animation letter counter.
 } WORD_SPRITE;
-
-/**********************************************************//**
- * @typedef WORD_ANIMATION
- * @brief Animation function type for animating a WORD_SPRITE
- * as a particle system.
- * @param sprite: The sprite to animate.
- * @return Whether the sprite continues existing.
- **************************************************************/
-typedef bool (*WORD_ANIMATION)(WORD_SPRITE *sprite, float dt);
 
 /**********************************************************//**
  * @brief Initializes the word_sprite module.

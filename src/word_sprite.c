@@ -4,10 +4,10 @@
  **************************************************************/
 
 // Standard library
-#include <stddef.h>     // size_t
-#include <stdbool.h>    // bool
-#include <string.h>     // strlen
-#include <math.h>       // fabs, sin
+#include <stddef.h>         // size_t
+#include <stdbool.h>        // bool
+#include <string.h>         // strlen
+#include <math.h>           // fabs, sin
 
 // Allegro
 #include <allegro5/allegro.h>
@@ -16,11 +16,11 @@
 #include <allegro5/allegro_primitives.h>
 
 // This project
-#include "debug.h"      // assert, eprintf
-#include "random.h"     // uniform
-#include "window.h"     // window size
-#include "word.h"       // WORD
-#include "word_sprite.h"// WORD_SPRITE
+#include "debug.h"          // assert, eprintf
+#include "random.h"         // uniform
+#include "window.h"         // window size
+#include "word.h"           // WORD
+#include "word_sprite.h"    // WORD_SPRITE
 
 //**************************************************************
 #define SPACING 12      ///< Spacing between word letters.
@@ -114,14 +114,6 @@ static inline void ResetSprite(WORD_SPRITE *sprite) {
     }
 }
 
-/*============================================================*
- * Sprite animation
- *============================================================*/
-bool wordSprite_Update(WORD_SPRITE *sprite, float dt) {
-    sprite->timer += dt;
-    return sprite->animate(sprite, dt);
-}
-
 static inline float Period(const WORD_SPRITE *sprite, float period) {
     return fmod(sprite->timer, period) / period;
 }
@@ -131,7 +123,7 @@ static inline float Tilt(const WORD_SPRITE *sprite, int index) {
 }
 
 static inline float IdleHeight(const WORD_SPRITE *sprite, int index) {
-    float period = Period(sprite, 1.0);
+    float period = fmod(al_get_time(), 1.0);
     return 4*(1 + sin((period + index/16.0)*2*M_PI));
 }
 
@@ -241,13 +233,58 @@ static bool AnimateJump(WORD_SPRITE *sprite, float dt) {
     
     // Stop animating check
     if (sprite->counter >= sprite->nLetters && nDown == sprite->nLetters) {
-        ChangeAnimation(sprite, &AnimateIdle);
+        ChangeAnimation(sprite, WORD_ANIMATE_IDLE);
         ResetSprite(sprite);
     }
     return true;
 }
 
-static bool AnimateEscape(WORD_SPRITE *sprite, float dt) {
+/*============================================================*
+ * Switching-in animation
+ *============================================================*/
+static bool AnimateEnter(WORD_SPRITE *sprite, float dt) {
+    // Animation constants
+    const float MAX_TIME = 0.5;
+    
+    // Initialize drop height
+    if (sprite->counter == 0) {
+        ResetSprite(sprite);
+        for (int i = 0; i < sprite->nLetters; i++) {
+            LETTER_SPRITE *current = &sprite->letters[i];
+            current->y = 60;
+            current->yv = 0;
+            current->opacity = 0.0;
+        }
+        sprite->counter = 1;
+    }
+    
+    // Drop letters
+    int nDrop = (int)(sprite->nLetters * sprite->timer / MAX_TIME);
+    for (int i = 0; i < nDrop; i++) {
+        LETTER_SPRITE *current = &sprite->letters[i];
+        current->yv -= 256*dt;
+        current->y += current->yv;
+        float idle = IdleHeight(sprite, i);
+        if (current->y < idle) {
+            current->y = idle;
+            current->opacity = 1.0;
+        } else if (current->y > 30) {
+            current->opacity = 1.0 - (current->y - 30.0)/30.0;
+        }
+    }
+    
+    // Idle transition
+    if (sprite->timer > MAX_TIME) {
+        ChangeAnimation(sprite, WORD_ANIMATE_IDLE);
+        ResetSprite(sprite);
+    }
+    return true;
+}
+
+/*============================================================*
+ * Switching-out animation
+ *============================================================*/
+static bool AnimateExit(WORD_SPRITE *sprite, float dt) {
     // Animation time
     const float MAX_TIME = 2.0;
     
@@ -286,6 +323,27 @@ static bool AnimateEscape(WORD_SPRITE *sprite, float dt) {
 }
 
 /*============================================================*
+ * Sprite animation
+ *============================================================*/
+bool wordSprite_Update(WORD_SPRITE *sprite, float dt) {
+    sprite->timer += dt;
+    switch (sprite->animate) {
+    case WORD_ANIMATE_IDLE:
+        return AnimateIdle(sprite, dt);
+    case WORD_ANIMATE_ENTER:
+        return AnimateEnter(sprite, dt);
+    case WORD_ANIMATE_EXIT:
+        return AnimateExit(sprite, dt);
+    case WORD_ANIMATE_DIE:
+        return AnimateExplode(sprite, dt);
+    case WORD_ANIMATE_ACTION:
+        return AnimateJump(sprite, dt);
+    default:
+        return false;
+    }
+}
+
+/*============================================================*
  * Word loading
  *============================================================*/
 void wordSprite_Load(WORD_SPRITE *sprite, float x, float y, const WORD *word) {
@@ -299,7 +357,7 @@ void wordSprite_Load(WORD_SPRITE *sprite, float x, float y, const WORD *word) {
     sprite->nLetters = length;
     sprite->x = x;
     sprite->y = y;
-    sprite->animate = &AnimateEscape;
+    sprite->animate = WORD_ANIMATE_ENTER;
     sprite->timer = 0.0;
     sprite->counter = 0;
     
