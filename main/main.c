@@ -137,6 +137,18 @@ static bool setup(void) {
     player_AddWord(&Player, &word);
     word_Create(&word, "Third", 10);
     player_AddWord(&Player, &word);
+    word_Create(&word, "First", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Fourth", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Fifth", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Sixth", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Seventh", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Eighth", 10);
+    player_AddWord(&Player, &word);
     
     // Set up team menu
     playerFrame_CreateTeam(&TeamMenu, &Player);

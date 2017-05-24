@@ -7,6 +7,8 @@
 
 #define PADDING 8
 
+#define BORDER 10
+
 void playerFrame_DrawTeam(const TEAM_MENU *menu) {
     const PLAYER *player = menu->player;
     
@@ -14,15 +16,18 @@ void playerFrame_DrawTeam(const TEAM_MENU *menu) {
     float dy = WORD_HUD_HEIGHT_EXTENDED + PADDING;
     
     // Get the scroll endpoints
-    int start = (int)(menu->scroll / dy);
-    int end = (int)((menu->scroll + WINDOW_HEIGHT) / dy);
+    int start = (int)((menu->scroll - BORDER) / dy);
+    if (start < 0) {
+        start = 0;
+    }
+    int end = (int)((menu->scroll + WINDOW_HEIGHT + dy) / dy);
     if (end > player->nWords) {
         end = player->nWords;
     }
     
     // Draw the word HUDs for everything in the box
-    float x = 10;
-    float y = 10 + start*dy - menu->scroll;
+    float x = BORDER;
+    float y = BORDER + start*dy - menu->scroll;
     for (int i = start; i < end; i++) {
         wordFrame_DrawHUD(&player->words[i], x, y, HUD_EXTENDED);
         y += dy;
@@ -54,8 +59,8 @@ void playerFrame_UpdateTeam(TEAM_MENU *menu, float dt) {
     const PLAYER *player = menu->player;
     
     // Maximum scroll
-    float scrollMin = 0;
     float dy = WORD_HUD_HEIGHT_EXTENDED + PADDING;
+    float scrollMin = dy - WINDOW_HEIGHT + BORDER;
     float scrollMax = (player->nWords - 1) * dy;
     if (scrollMax < 0) {
         scrollMax = 0;
