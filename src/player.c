@@ -13,30 +13,16 @@
 #include "player.h"     // PLAYER
 #include "word.h"       // WORD
 
-/**********************************************************//**
- * @struct PLAYER_SAVE
- * @brief Structure of a PLAYER save file.
- **************************************************************/
-typedef struct {
-    char header[8]; ///< Header data for the player.
-    PLAYER payload; ///< Payload.
-    char footer[8]; ///< Footer data for the player.
-} PLAYER_SAVE;
-
-/// Header and footer for the PLAYER_SAVE structure.
-static const char MAGIC_NUMBER[8] = "SAVEWSM1";
-
 /*============================================================*
  * Creating a player
  *============================================================*/
 bool player_Create(PLAYER *player, const char *username) {
-    
     // Zero out the struct
     memset(&player, 0, sizeof(PLAYER));
     
     // Set up player username
     int length = strlen(username);
-    if (length < 1 || length > MAX_WORD_LENGTH) {
+    if (length < MIN_USERNAME_LENGTH || length > MAX_USERNAME_LENGTH) {
         eprintf("Player cannot have the username \"%s\"\n", username);
         return false;
     }
@@ -46,67 +32,6 @@ bool player_Create(PLAYER *player, const char *username) {
     player->nWords = 0;
     player->nTeam = 0;
     player->nBox = 0;
-    player->rank = MIN_RANK;
-    player->letters = 0;
-    player->gold = 0;
-    return true;
-}
-
-/*============================================================*
- * Player loading
- *============================================================*/
-bool player_Load(PLAYER *player, const char *filename) {
-    
-    // Open the file
-    FILE *saveFile = fopen(filename, "rb");
-    if (!saveFile) {
-        eprintf("Failed to open the file \"%s\"\n", filename);
-        return false;
-    }
-    
-    // Load the data from the file
-    PLAYER_SAVE data;
-    size_t nRead = fread(&data, sizeof(PLAYER_SAVE), 1, saveFile);
-    fclose(saveFile);
-    
-    // Check payload size and header / footer tags.
-    if (nRead != sizeof(PLAYER_SAVE) || strcmp(data.header, MAGIC_NUMBER) || strcmp(data.footer, MAGIC_NUMBER)) {
-        eprintf("Failed to read valid data from the file.\n");
-        return false;
-    }
-    
-    // Successfully read player data.
-    memcpy(player, &data.payload, sizeof(PLAYER));
-    return true;
-}
-
-/*============================================================*
- * Player saving
- *============================================================*/
-bool player_Save(const PLAYER *player, const char *filename) {
-    
-    // Open the file
-    FILE *saveFile = fopen(filename, "wb");
-    if (!saveFile) {
-        eprintf("Failed to open the file \"%s\"\n", filename);
-        return false;
-    }
-    
-    // Create the payload and maintain the headers.
-    PLAYER_SAVE data;
-    memcpy(&data.header, MAGIC_NUMBER, sizeof(MAGIC_NUMBER));
-    memcpy(&data.footer, MAGIC_NUMBER, sizeof(MAGIC_NUMBER));
-    memcpy(&data.payload, player, sizeof(PLAYER));
-    
-    // Write the data
-    size_t nWrite = fwrite(&data, sizeof(PLAYER_SAVE), 1, saveFile);
-    fclose(saveFile);
-    
-    // Check if it succeeded.
-    if (nWrite != sizeof(PLAYER_SAVE)) {
-        eprintf("Failed to write all the data.\n");
-        return false;
-    }
     return true;
 }
 
@@ -278,27 +203,6 @@ bool player_SwapWord(PLAYER *player, const WORD *word) {
         player->nTeam--;
     }
     return true;
-}
-
-/*============================================================*
- * Get the player's team
- *============================================================*/
-bool player_GetTeam(PLAYER *player, TEAM *team) {
-    
-    // Error check the team size.
-    if (player->nTeam <= 0) {
-        eprintf("Player has no active team.\n");
-        return false;
-    }
-    
-    // Copy the words into the team.
-    WORD *words[TEAM_SIZE];
-    for (int i = 0; i < player->nTeam; i++) {
-        words[i] = &player->words[player->team[i]];
-    }
-    
-    // Generate the team
-    return team_Create(team, words, player->nTeam);
 }
 
 /*============================================================*/
