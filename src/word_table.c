@@ -84,6 +84,7 @@ bool wordTable_Load(const char *filename) {
             if (!newTable) {
                 eprintf("Failed to expand the table.\n");
                 wordTable_Destroy();
+                fclose(file);
                 return false;
             }
             
@@ -103,11 +104,15 @@ bool wordTable_Load(const char *filename) {
         if (!GlobalWords.table[GlobalWords.size]) {
             eprintf("Out of memory.\n");
             wordTable_Destroy();
+            fclose(file);
             return false;
         }
         strcpy(GlobalWords.table[GlobalWords.size], buf);
         GlobalWords.size++;
     }
+    
+    // Done reading
+    fclose(file);
     
     // Compress the table size
     char **compressed = (char **)malloc(GlobalWords.size * sizeof(char *));
