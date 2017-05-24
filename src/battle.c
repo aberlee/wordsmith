@@ -14,6 +14,7 @@
 #include "word.h"       // WORD
 #include "technique.h"  // TECHNIQUE
 #include "battle.h"     // TEAM, BATTLE
+#include "player.h"
 
 /**********************************************************//**
  * @brief Remove all the word effects from the active word.
@@ -212,6 +213,27 @@ void team_ChargeTechPoints(TEAM *team) {
     if (team->techPoints > MAX_TP) {
         team->techPoints = MAX_TP;
     }
+}
+
+/*============================================================*
+ * Get the player's team
+ *============================================================*/
+bool player_GetTeam(PLAYER *player, TEAM *team) {
+    
+    // Error check the team size.
+    if (player->nTeam <= 0) {
+        eprintf("Player has no active team.\n");
+        return false;
+    }
+    
+    // Copy the words into the team.
+    WORD *words[TEAM_SIZE];
+    for (int i = 0; i < player->nTeam; i++) {
+        words[i] = &player->words[player->team[i]];
+    }
+    
+    // Generate the team
+    return team_Create(team, words, player->nTeam);
 }
 
 /*============================================================*/

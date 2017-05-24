@@ -11,6 +11,7 @@
 
 // This project
 #include "word.h"       // WORD
+#include "player.h"
 
 /*============================================================*
  * Constants
@@ -30,9 +31,6 @@
 #define EFFECT_PERMANENT -2 ///< The effect is applied permanently.
 #define EFFECT_EPHEMERAL -1 ///< The effect is applied for one turn only.
 #define EFFECT_MAX_TIME 5   ///< The standard number of turns an effect lasts.
-
-/// The number of words on one team.
-#define TEAM_SIZE 3
 
 /// The index of the active word on a team.
 #define ACTIVE_WORD 0
@@ -104,6 +102,14 @@ typedef struct {
     bool isOver;    ///< Whether the battle has ended.
     bool usersWon;  ///< Whether the user team won.
 } BATTLE;
+
+/**********************************************************//**
+ * @brief Generate a pointer array for the player team
+ * @param player: The player data to mutate.
+ * @param team: The team to load.
+ * @return Whether the team was successfully created.
+ **************************************************************/
+extern bool player_GetTeam(PLAYER *player, TEAM *team);
 
 /**********************************************************//**
  * @brief Initialize a team structure with the given words.
