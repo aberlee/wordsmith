@@ -152,7 +152,7 @@ void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode) {
     
     // Draw the real word symbol
     if (word->isReal) {
-        al_draw_bitmap(GlobalRealWordIcon, x+137, y+20, 0);
+        al_draw_bitmap(GlobalRealWordIcon, x+136, y+19, 0);
     }
 
     // Draw the word's experience bar
