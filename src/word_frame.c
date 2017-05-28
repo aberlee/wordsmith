@@ -151,7 +151,7 @@ void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode) {
     frame_DrawOutlinedText(x+7, y+19, string);
     
     // Draw the real word symbol
-    if (word->isReal) {
+    if (word->flags & WORD_REAL) {
         al_draw_bitmap(GlobalRealWordIcon, x+159, y+19, 0);
     }
 	

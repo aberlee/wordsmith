@@ -176,7 +176,11 @@ bool word_Create(WORD *word, const char *text, int level) {
         eprintf("Word table has not been initialized.\n");
         return false;
     }
-    word->isReal = wordTable_Contains(lowercase);
+    if (wordTable_Contains(lowercase)) {
+		word->flags = WORD_REAL;
+	} else {
+		word->flags = 0;
+	}
     
     // Set level
     if (level < MIN_LEVEL || level > MAX_LEVEL) {
@@ -209,7 +213,7 @@ bool word_Create(WORD *word, const char *text, int level) {
     
     // Get the initial base stat modifier
     int initial = INITIAL_STAT;
-    if (word->isReal) {
+    if (word->flags & WORD_REAL) {
         initial += REAL_BOOST;
     }
     
@@ -249,7 +253,7 @@ bool word_Create(WORD *word, const char *text, int level) {
         // configured properly.
         if (tech != NONE && word->nTechs < MAX_TECHNIQUES) {
             word->techs[word->nTechs++] = tech;
-        } else if (word->isReal) {
+        } else if (word->flags & WORD_REAL) {
             // Only get these boosts for real words so we can prevent
             // spamming stuff like "aaaaaaaaaaaaaaaa"
             word->base[first] += OVERFLOW_BOOST;

@@ -63,6 +63,11 @@ typedef enum {
     RANK_S=5,       ///< Best rank. 500 <= BST
 } RANK;
 
+typedef enum {
+	WORD_REAL=0x1,
+	WORD_PROTECTED=0x2,
+} WORD_FLAGS;
+
 /**********************************************************//**
  * @struct WORD
  * @brief Defines all the data in one word.
@@ -74,7 +79,7 @@ typedef struct {
     int base[N_STATS];  ///< Constant base stats.
     int nTechs;         ///< Number of techniques.
     RANK rank;          ///< The rank of the word.
-    bool isReal;        ///< Whether this word is a real word.
+    WORD_FLAGS flags;	///< Word properties.
     
     // Current stats (recalculate on level up)
     int level;          ///< Level of the word
