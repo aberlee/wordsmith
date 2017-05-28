@@ -112,20 +112,28 @@ static ALLEGRO_COLOR HealthColor(float ratio) {
 /*============================================================*
  * Draw the word HUD
  *============================================================*/
-void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode) {
+void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode, bool selected) {
+    // Get the frame tint
+    ALLEGRO_COLOR tint;
+    if (selected) {
+        tint = al_map_rgb_f(0.8, 0.8, 1.0);
+    } else {
+        tint = al_map_rgb_f(1.0, 1.0, 1.0);
+    }
+    
     // Choose whether to draw experience or not
     switch (mode) {
     case HUD_EXTENDED:
-        al_draw_bitmap(GlobalHUDExp, x, y, 0);
+        al_draw_tinted_bitmap(GlobalHUDExp, tint, x, y, 0);
         break;
     
     case HUD_FULL:
-        al_draw_bitmap(GlobalHUDFull, x, y, 0);
+        al_draw_tinted_bitmap(GlobalHUDFull, tint, x, y, 0);
         break;
     
     case HUD_BASIC:
     default:
-        al_draw_bitmap(GlobalHUD, x, y, 0);
+        al_draw_tinted_bitmap(GlobalHUD, tint, x, y, 0);
         break;
     }
     

@@ -204,6 +204,10 @@ static void keyboard(int key, bool down) {
         } else {
             playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_NEUTRAL);
         }
+    } else if (key == ALLEGRO_KEY_RIGHT && down) {
+        playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_RIGHT);
+    } else if (key == ALLEGRO_KEY_LEFT && down) {
+        playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_LEFT);
     }
 }
 
@@ -277,7 +281,7 @@ int main(int argc, char **argv) {
             running = false;
             break;
         
-        case ALLEGRO_EVENT_KEY_DOWN:
+        case ALLEGRO_EVENT_KEY_CHAR:
             keyboard(event.keyboard.keycode, true);
             break;
         

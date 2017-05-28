@@ -9,12 +9,11 @@ typedef enum {
 typedef struct {
     PLAYER *player;
     float scroll;
-    float velocity;
-    float acceleration;
     TEAM_MENU_STATE state;
     
     // Selection
-    int row;
+    int boxSelect;
+    int teamSelect;
     int column;
 } TEAM_MENU;
 
@@ -31,9 +30,8 @@ typedef enum {
 static void playerFrame_CreateTeam(TEAM_MENU *menu, PLAYER *player) {
     menu->player = player;
     menu->scroll = 0.0;
-    menu->velocity = 0.0;
-    menu->acceleration = 0.0;
-    menu->row = 0;
+    menu->boxSelect = 0;
+    menu->teamSelect = 0;
     menu->column = 0;
     menu->state = TEAM_MENU_STATE_MAIN;
 }

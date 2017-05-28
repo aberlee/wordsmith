@@ -39,7 +39,7 @@ extern void wordFrame_Initialize(void);
  * @param y: The y position of the frame.
  * @param mode: The kind of HUD to draw.
  **************************************************************/
-extern void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode);
+extern void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode, bool selected);
 
 /*============================================================*/
 #endif // _WORD_FRAME_H_
