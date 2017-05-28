@@ -58,10 +58,19 @@ void playerFrame_InteractTeam(TEAM_MENU *menu, TEAM_MENU_ACTION action) {
 void playerFrame_UpdateTeam(TEAM_MENU *menu, float dt) {
     const PLAYER *player = menu->player;
     
-    // Maximum scroll
+    // Total menu items height
     float dy = WORD_HUD_HEIGHT_EXTENDED + PADDING;
-    float scrollMin = dy - WINDOW_HEIGHT + BORDER;
-    float scrollMax = (player->nWords - 1) * dy;
+	float span = player->nWords*dy;
+	float spanMax = WINDOW_HEIGHT - BORDER;
+	if (span > spanMax) {
+		span = spanMax;
+	}
+	
+	// Minimum scroll
+    float scrollMin = 0;
+	
+	// Maximum scroll
+    float scrollMax = player->nWords*dy - span;
     if (scrollMax < 0) {
         scrollMax = 0;
     }
