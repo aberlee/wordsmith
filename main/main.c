@@ -140,12 +140,14 @@ static bool setup(void) {
     word_Create(&word, "Fjord", 10);
     player_AddWord(&Player, &word);
     word_Create(&word, "AAAAAAAAAAAAAAA", 10);
+	word.flags |= WORD_LOCKED;
     player_AddWord(&Player, &word);
     word_Create(&word, "Explosion", 10);
     player_AddWord(&Player, &word);
     word_Create(&word, "Death", 10);
     player_AddWord(&Player, &word);
     word_Create(&word, "Depression", 10);
+	word.flags |= WORD_LOCKED;
     player_AddWord(&Player, &word);
     word_Create(&word, "Nnn", 10);
     player_AddWord(&Player, &word);

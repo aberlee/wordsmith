@@ -31,7 +31,10 @@ static ALLEGRO_BITMAP *GlobalHUDExp;
 static ALLEGRO_BITMAP *GlobalHUDFull;
 
 /// Icon denoting that a word is in the dictionary on its HUD.
-static ALLEGRO_BITMAP *GlobalRealWordIcon;
+static ALLEGRO_BITMAP *GlobalFlagReal;
+
+/// Icon denoting that a word cannot be erased.
+static ALLEGRO_BITMAP *GlobalFlagLocked;
 
 /// Icon denoting a word is RANK S.
 static ALLEGRO_BITMAP *GlobalRankS;
@@ -61,7 +64,8 @@ void wordFrame_Initialize(void) {
     GlobalHUDFull = al_load_bitmap("data/image/hud_stats.png");
     
     // Load HUD icons
-    GlobalRealWordIcon = al_load_bitmap("data/image/real.png");
+    GlobalFlagReal = al_load_bitmap("data/image/flag_real.png");
+	GlobalFlagLocked = al_load_bitmap("data/image/flag_locked.png");
     
     // Load rank icons
     GlobalRankS = al_load_bitmap("data/image/rank_s.png");
@@ -150,12 +154,7 @@ void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode) {
     sprintf(string, "%d/%d", word->hp, word->stat[STAT_MAXHP]);
     frame_DrawOutlinedText(x+7, y+19, string);
     
-    // Draw the real word symbol
-    if (word->flags & WORD_REAL) {
-        al_draw_bitmap(GlobalRealWordIcon, x+159, y+19, 0);
-    }
-	
-	// Draw the rank
+    // Draw the rank
 	if (mode != HUD_BASIC) {
 		ALLEGRO_BITMAP *rank;
 		switch (word->rank) {
@@ -181,6 +180,14 @@ void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode) {
 		}
 		al_draw_bitmap(rank, x+137, y+19, 0);
 	}
+	
+	// Draw the word flags
+    if (word->flags & WORD_REAL) {
+        al_draw_bitmap(GlobalFlagReal, x+148, y+19, 0);
+    }
+	if (word->flags & WORD_LOCKED) {
+		al_draw_bitmap(GlobalFlagLocked, x+159, y+19, 0);
+    }
 
     // Draw the word's experience bar
     if (mode == HUD_EXTENDED || mode == HUD_FULL) {

@@ -65,7 +65,7 @@ typedef enum {
 
 typedef enum {
 	WORD_REAL=0x1,
-	WORD_PROTECTED=0x2,
+	WORD_LOCKED=0x2,
 } WORD_FLAGS;
 
 /**********************************************************//**
