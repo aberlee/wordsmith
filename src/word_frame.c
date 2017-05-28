@@ -152,8 +152,35 @@ void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode) {
     
     // Draw the real word symbol
     if (word->isReal) {
-        al_draw_bitmap(GlobalRealWordIcon, x+136, y+19, 0);
+        al_draw_bitmap(GlobalRealWordIcon, x+159, y+19, 0);
     }
+	
+	// Draw the rank
+	if (mode != HUD_BASIC) {
+		ALLEGRO_BITMAP *rank;
+		switch (word->rank) {
+		case RANK_S:
+			rank = GlobalRankS;
+			break;
+		case RANK_A:
+			rank = GlobalRankA;
+			break;
+		case RANK_B:
+			rank = GlobalRankB;
+			break;
+		case RANK_C:
+			rank = GlobalRankC;
+			break;
+		case RANK_D:
+			rank = GlobalRankD;
+			break;
+		case RANK_F:
+		default:
+			rank = GlobalRankF;
+			break;
+		}
+		al_draw_bitmap(rank, x+137, y+19, 0);
+	}
 
     // Draw the word's experience bar
     if (mode == HUD_EXTENDED || mode == HUD_FULL) {
@@ -179,31 +206,6 @@ void wordFrame_DrawHUD(const WORD *word, int x, int y, HUD_MODE mode) {
         
         sprintf(string, "%d", word->stat[STAT_SPEED]);
         frame_DrawText(x+146, y+65, string);
-        
-        // Draw the rank
-        ALLEGRO_BITMAP *rank;
-        switch (word->rank) {
-        case RANK_S:
-            rank = GlobalRankS;
-            break;
-        case RANK_A:
-            rank = GlobalRankA;
-            break;
-        case RANK_B:
-            rank = GlobalRankB;
-            break;
-        case RANK_C:
-            rank = GlobalRankC;
-            break;
-        case RANK_D:
-            rank = GlobalRankD;
-            break;
-        case RANK_F:
-        default:
-            rank = GlobalRankF;
-            break;
-        }
-        al_draw_bitmap(rank, x+147, y+77, 0);
         
         // Draw the techniques
         const TECHNIQUE_DATA *data;

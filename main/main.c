@@ -131,23 +131,23 @@ static bool setup(void) {
     
     // Add words
     WORD word;
-    word_Create(&word, "First", 10);
+    word_Create(&word, "Spite", 10);
     player_AddWord(&Player, &word);
-    word_Create(&word, "Second", 10);
+    word_Create(&word, "Skylarks", 10);
     player_AddWord(&Player, &word);
-    word_Create(&word, "Third", 10);
+    word_Create(&word, "Afghanistan", 10);
     player_AddWord(&Player, &word);
-    word_Create(&word, "First", 10);
+    word_Create(&word, "Fjord", 10);
     player_AddWord(&Player, &word);
-    word_Create(&word, "Fourth", 10);
+    word_Create(&word, "AAAAAAAAAAAAAAA", 10);
     player_AddWord(&Player, &word);
-    word_Create(&word, "Fifth", 10);
+    word_Create(&word, "Explosion", 10);
     player_AddWord(&Player, &word);
-    word_Create(&word, "Sixth", 10);
+    word_Create(&word, "Death", 10);
     player_AddWord(&Player, &word);
-    word_Create(&word, "Seventh", 10);
+    word_Create(&word, "Depression", 10);
     player_AddWord(&Player, &word);
-    word_Create(&word, "Eighth", 10);
+    word_Create(&word, "Nnn", 10);
     player_AddWord(&Player, &word);
     
     // Set up team menu
