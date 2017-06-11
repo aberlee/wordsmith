@@ -14,7 +14,6 @@
  * Word loading
  *============================================================*/
 void bar_Draw(const BAR *bar) {
-    
     // Draw the bar
     int xo = bar->x;
     int xf = bar->x + bar->width;

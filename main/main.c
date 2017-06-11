@@ -5,10 +5,10 @@
  **************************************************************/
 
 // Standard library
-#include <stdlib.h>     // malloc, srand
-#include <stdbool.h>    // bool
-#include <stdio.h>      // printf, fopen, fclose ...
-#include <time.h>       // time
+#include <stdlib.h>         // malloc, srand
+#include <stdbool.h>        // bool
+#include <stdio.h>          // printf, fopen, fclose ...
+#include <time.h>           // time
 
 // Allegro
 #include <allegro5/allegro.h>
@@ -19,27 +19,29 @@
 #include <allegro5/allegro_primitives.h>
 
 // This project
-#include "debug.h"      // eprintf, assert
-#include "state.h"      // STATE
-#include "frame.h"      // frame_SetTheme
-#include "word_sprite.h"// word_SetFont
-#include "word_table.h" // wordtable_Load
+#include "debug.h"          // eprintf, assert
+#include "window.h"         // window size
+#include "frame_rate.h"     // FrameRate
+#include "frame.h"          // FRAME
+#include "word_sprite.h"    // WORD_SPRITE
+#include "word_frame.h"     // WORD_FRAME
+#include "word_table.h"     // WORD_TABLE
+#include "player.h"
+#include "player_frame.h"
 
-// Debugging
-#include "test_state.h"
-
-/*============================================================*
- * Display window
- *============================================================*/
-
-/// The width of the display window in pixels.
-#define WINDOW_WIDTH 640
-
-/// The height of the display window in pixels.
-#define WINDOW_HEIGHT 320
-
+//*************************************************************
 /// The frame rate of the game.
-#define FRAME_RATE 60
+#define FRAME_RATE 60.0
+
+//*************************************************************
+/// Debugging font.
+static ALLEGRO_FONT *GlobalDebugFont;
+
+static WORD Word;
+static WORD_SPRITE Sprite;
+
+static PLAYER Player;
+static TEAM_MENU TeamMenu;
 
 /**********************************************************//**
  * @brief Program setup function.
@@ -47,14 +49,9 @@
  * aborted if this function fails. It also must be called only
  * once, before any other functions care called.
  **************************************************************/
-static inline bool setup(void) {
-    
+static bool setup(void) {
     // Random number generator setup
-#ifdef DEBUG
-    srand(42);
-#else
     srand(time(NULL));
-#endif
 
     // Allegro setup
     if (!al_init()) {
@@ -88,6 +85,9 @@ static inline bool setup(void) {
     // Blender setup
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
     
+    // Timer setup
+    RegisterTimer(&al_get_time);
+    
     // Set up theme
     THEME theme;
     theme.font = al_load_ttf_font("data/font/wordsmith.ttf", 16, ALLEGRO_TTF_MONOCHROME);
@@ -105,22 +105,56 @@ static inline bool setup(void) {
     theme.spacing = 2;
     frame_SetTheme(&theme);
     
-    // Set up word font
-    ALLEGRO_FONT *wordFont = al_load_ttf_font("data/font/wordsmith.ttf", 32, ALLEGRO_TTF_MONOCHROME);
-    if (!wordFont) {
-        eprintf("Failed to load the word font.\n");
-        return false;
-    }
-    word_SetFont(wordFont, 16);
-    
     // Set up real word table
-    if (!wordtable_Load("data/words/english.txt")) {
+    if (!wordTable_Load("data/words/english.txt")) {
         eprintf("Failed to load the real word table.\n");
         return false;
     }
     
-    // Initial state
-    state_Initialize(InitialState());
+    // System setup
+    GlobalDebugFont = al_load_ttf_font("data/font/wordsmith.ttf", 16, ALLEGRO_TTF_MONOCHROME);
+    if (!GlobalDebugFont) {
+        eprintf("Failed to load system debug font.\n");
+        return false;
+    }
+    
+    // Not error checking these because the effect will be
+    // obvious if a resource is missing.
+    wordSprite_Initialize();
+    wordFrame_Initialize();
+    
+    // Game initialization
+    if (!player_Create(&Player, "Wes")) {
+        eprintf("Unable to initialize player data.\n");
+        return false;
+    }
+    
+    // Add words
+    WORD word;
+    word_Create(&word, "Spite", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Skylarks", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Afghanistan", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Fjord", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "AAAAAAAAAAAAAAA", 10);
+	word.flags |= WORD_LOCKED;
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Explosion", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Death", 10);
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Depression", 10);
+	word.flags |= WORD_LOCKED;
+    player_AddWord(&Player, &word);
+    word_Create(&word, "Nnn", 10);
+    player_AddWord(&Player, &word);
+    
+    // Set up team menu
+    playerFrame_CreateTeam(&TeamMenu, &Player);
+    
     return true;
 }
 
@@ -128,9 +162,53 @@ static inline bool setup(void) {
  * @brief Program cleanup function.
  * @return This is called when the program ends.
  **************************************************************/
-static inline void cleanup(void) {
+static void cleanup(void) {
     // Destroy resources
-    wordtable_Destroy();
+    wordTable_Destroy();
+}
+
+/**********************************************************//**
+ * @brief Screen rendering function.
+ **************************************************************/
+static void render(void) {
+    // Draw the frame rate
+    char buf[64];
+    sprintf(buf, "%0.1lf FPS", FrameRate());
+    al_draw_text(GlobalDebugFont, al_map_rgb(255, 255, 255), 1, 1, ALLEGRO_ALIGN_LEFT, buf);
+    
+    // Render stats
+    playerFrame_DrawTeam(&TeamMenu);
+}
+
+/**********************************************************//**
+ * @brief Update loop function.
+ **************************************************************/
+static bool update(float dt) {
+    // Record the frame for frame rate
+    RegisterFrame();
+    
+    playerFrame_UpdateTeam(&TeamMenu, dt);
+    return true;
+}
+
+static void keyboard(int key, bool down) {
+    if (key == ALLEGRO_KEY_UP) {
+        if (down) {
+            playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_UP);
+        } else {
+            playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_NEUTRAL);
+        }
+    } else if (key == ALLEGRO_KEY_DOWN) {
+        if (down) {
+            playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_DOWN);
+        } else {
+            playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_NEUTRAL);
+        }
+    } else if (key == ALLEGRO_KEY_RIGHT && down) {
+        playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_RIGHT);
+    } else if (key == ALLEGRO_KEY_LEFT && down) {
+        playerFrame_InteractTeam(&TeamMenu, TEAM_MENU_LEFT);
+    }
 }
 
 /**********************************************************//**
@@ -157,6 +235,7 @@ int main(int argc, char **argv) {
     
     // Display setup
     ALLEGRO_DISPLAY *display;
+    al_set_new_display_flags(ALLEGRO_RESIZABLE);
     if (!(display = al_create_display(WINDOW_WIDTH, WINDOW_HEIGHT))) {
         eprintf("Failed to create display.\n");
         return EXIT_FAILURE;
@@ -173,7 +252,7 @@ int main(int argc, char **argv) {
     al_register_event_source(queue, al_get_timer_event_source(timer));
     
     // Set up screen
-    ALLEGRO_COLOR background = al_map_rgb(200, 200, 200);
+    ALLEGRO_COLOR background = al_map_rgb(0, 0, 0);
     al_clear_to_color(background);
     al_flip_display();
     
@@ -184,16 +263,17 @@ int main(int argc, char **argv) {
     ALLEGRO_EVENT event;
     bool running = true;
     bool redraw = false;
+    float previous = al_get_time();
+    float current;
     while (running) {
         // Get the next event
         al_wait_for_event(queue, &event);
         switch (event.type) {
         case ALLEGRO_EVENT_TIMER:
-            // Calculate the real time of the frame.
-            // Also only redraw on frame updates
-            // for efficiency.
-            // TODO does this cause errors?
-            running = state_Update(al_get_time());
+            // Compute the time step and update
+            current = al_get_time();
+            running = update(current-previous);
+            previous = current;
             redraw = true;
             break;
             
@@ -201,17 +281,22 @@ int main(int argc, char **argv) {
             running = false;
             break;
         
+        case ALLEGRO_EVENT_KEY_CHAR:
+            keyboard(event.keyboard.keycode, true);
+            break;
+        
+        case ALLEGRO_EVENT_KEY_UP:
+            keyboard(event.keyboard.keycode, false);
+            break;
+            
         default:
-            running = state_Run(&event);
+            break;
         }
         
         // Redraw the screen
         if (running && redraw && al_is_event_queue_empty(queue)) {
             al_clear_to_color(background);
-            if (!state_Draw()) {
-                eprintf("Failed to draw the state.\n");
-                return EXIT_FAILURE;
-            }
+            render();
             al_flip_display();
             redraw = false;
         }

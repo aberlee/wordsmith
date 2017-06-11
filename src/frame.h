@@ -105,6 +105,19 @@ typedef struct {
 } FRAME;
 
 /**********************************************************//**
+ * @brief Gets the height needed for the lines of text.
+ * @param lines: The number of lines of text.
+ * @return The height required foe the text frame.
+ **************************************************************/
+extern int frame_GetLineHeight(int lines);
+
+/**********************************************************//**
+ * @brief Gets the line spacing between two lines of text.
+ * @return The spacing distance.
+ **************************************************************/
+extern int frame_GetLineSpacing(void);
+
+/**********************************************************//**
  * @brief Sets the frame's width and height with respect
  * to the outline and padding, so that the interior area of the
  * frame is large enough for the given dimensions.
@@ -181,24 +194,23 @@ typedef struct {
 } TEXT_FRAME;
 
 /**********************************************************//**
- * @brief Gets the height needed for the lines of text.
- * @param lines: The number of lines of text.
- * @return The height required foe the text frame.
+ * @brief Gets the width of the text frame.
+ * @param frame: The text frame to inspect.
  **************************************************************/
-extern int frame_GetLineHeight(int lines);
+extern int textFrame_Width(const TEXT_FRAME *frame);
 
 /**********************************************************//**
- * @brief Gets the line spacing between two lines of text.
- * @return The spacing distance.
+ * @brief Gets the height of the text frame.
+ * @param frame: The text frame to inspect.
  **************************************************************/
-extern int frame_GetLineSpacing(void);
+extern int textFrame_Height(const TEXT_FRAME *frame);
 
 /**********************************************************//**
  * @brief Draws the text frame and the text it contains based
  * on the current theme.
  * @param frame: Pointer to a text frame to draw.
  **************************************************************/
-extern void textframe_Draw(const TEXT_FRAME *frame);
+extern void textFrame_Draw(const TEXT_FRAME *frame);
 
 /**********************************************************//**
  * @struct MENU
@@ -216,16 +228,74 @@ typedef struct {
     FRAME_FLAG flags;   ///< Rendering flags for the frame.
 } MENU;
 
-// Menu running results. Results 0...n are valid indexes that
-// should be considered.
-#define MENU_CANCEL -2      ///< Cancel the menu (stop)
-#define MENU_CONTINUE -1    ///< Continue running the menu.
+/**********************************************************//**
+ * @enum MENU_ACTION
+ * @brief All user inputs to the menu.
+ **************************************************************/
+typedef enum {
+    MENU_ACTION_UP,     ///< Scroll up.
+    MENU_ACTION_DOWN,   ///< Scroll down.
+    MENU_ACTION_YES,    ///< Confirm the current choice.
+    MENU_ACTION_NO,     ///< Deny the current choice.
+} MENU_ACTION;
+
+/**********************************************************//**
+ * @enum MENU_STATUS
+ * @brief All possible user interaction results on the MENU.
+ **************************************************************/
+typedef enum {
+    MENU_STATUS_CONFIRM,    ///< Finalize an item on the menu.
+    MENU_STATUS_CANCEL,     ///< Stop running the menu.
+    MENU_STATUS_CONTINUE,   ///< Continue running the menu.
+} MENU_STATUS;
 
 /**********************************************************//**
  * @brief Initializes the cursor to the first menu entry.
  * @param menu: Pointer to the menu to reset.
  **************************************************************/
 extern void menu_Reset(MENU *menu);
+
+/**********************************************************//**
+ * @brief Gets the index of the current element selected on
+ * the given MENU.
+ * @param menu: Pointer to the menu.
+ * @return The currently selected item on the menu.
+ **************************************************************/
+static inline int menu_Current(const MENU *menu) {
+    return menu->scroll + menu->cursor;
+}
+
+/**********************************************************//**
+ * @brief Gets the index of the element being displayed on
+ * the very top of the menu, respective to scroll.
+ * @param menu: Pointer to the menu.
+ * @return The top item on the menu.
+ **************************************************************/
+static inline int menu_Top(const MENU *menu) {
+    return menu->scroll;
+}
+
+/**********************************************************//**
+ * @brief Gets the index of the element being displayed on
+ * the very bottom of the menu, respective to scroll.
+ * @param menu: Pointer to the menu.
+ * @return The bottom item on the menu.
+ **************************************************************/
+static inline int menu_Bottom(const MENU *menu) {
+    return menu->scroll + menu->lines;
+}
+
+/**********************************************************//**
+ * @brief Gets the width of the menu.
+ * @param frame: The menu to inspect.
+ **************************************************************/
+extern int menu_Width(const MENU *menu);
+
+/**********************************************************//**
+ * @brief Gets the height of the menu.
+ * @param frame: The menu to inspect.
+ **************************************************************/
+extern int menu_Height(const MENU *menu);
 
 /**********************************************************//**
  * @brief Draws the menu on the screen using the current theme.
@@ -236,12 +306,10 @@ extern void menu_Draw(const MENU *menu);
 /**********************************************************//**
  * @brief Handles keyboard input for the given menu.
  * @param menu: The menu being interacted with.
- * @param event: The keyboard event to handle.
- * @return The index of the selected entry on confirmation,
- * or MENU_CANCEL if the menu was cancelled, otherwise
- * MENU_CONTINUE if the menu should keep being interacted with.
+ * @param action: The action the user is taking with the menu.
+ * @return Current status of the menu.
  **************************************************************/
-extern int menu_Run(MENU *menu, const ALLEGRO_EVENT *event);
+extern MENU_STATUS menu_Run(MENU *menu, MENU_ACTION action);
 
 /*============================================================*/
 #endif // _FRAME_H_

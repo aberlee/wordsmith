@@ -30,8 +30,8 @@ typedef enum {
     NONE = 0,       ///< No technique is defined (sentinel).
     
     // Basic attacks
-    T_ATTACK,       ///< Basic attack that damages the enemy.
-    T_DEFEND,       ///< Take reduced damage and recharge TP.
+    ATTACK,         ///< Basic attack that damages the enemy.
+    DEFEND,         ///< Take reduced damage and recharge TP.
     SWITCH,         ///< Switch your word out.
     
     // Health-dominant techniques

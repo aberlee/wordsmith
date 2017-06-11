@@ -12,10 +12,7 @@
 // This project
 #include "technique.h"  // TECHNIQUE
 
-/*============================================================*
- * Constants
- *============================================================*/
-
+//**************************************************************
 /// Number of letters supported (a-z)
 #define N_LETTERS 26
 
@@ -43,10 +40,10 @@
  * @brief Defines all word statistics.
  **************************************************************/
 typedef enum {
-    MAXHP,  ///< Maximum health.
-    ATTACK, ///< Attack power.
-    DEFEND, ///< Defensive power.
-    SPEED,  ///< Speed and agility.
+    STAT_MAXHP,     ///< Maximum health.
+    STAT_ATTACK,    ///< Attack power.
+    STAT_DEFEND,    ///< Defensive power.
+    STAT_SPEED,     ///< Speed and agility.
 } STAT;
 
 /// The total number of unique stats.
@@ -58,13 +55,19 @@ typedef enum {
  * total (BST).
  **************************************************************/
 typedef enum {
-    RANK_F=0,   ///< Worst rank. BST < 300
-    RANK_D=1,   ///< Lower rank. 300 <= BST < 350
-    RANK_C=2,   ///< Average rank. 350 <= BST < 400
-    RANK_B=3,   ///< Above average rank. 400 <= BST < 450
-    RANK_A=4,   ///< Excellent rank. 450 <= BST < 500
-    RANK_S=5,   ///< Best rank. 500 <= BST
+    RANK_F=0,       ///< Worst rank. BST < 300
+    RANK_D=1,       ///< Lower rank. 300 <= BST < 350
+    RANK_C=2,       ///< Average rank. 350 <= BST < 400
+    RANK_B=3,       ///< Above average rank. 400 <= BST < 450
+    RANK_A=4,       ///< Excellent rank. 450 <= BST < 500
+    RANK_S=5,       ///< Best rank. 500 <= BST
 } RANK;
+
+typedef enum {
+	WORD_REAL=0x1,
+	WORD_LOCKED=0x2,
+    WORD_IN_TEAM=0x4,
+} WORD_FLAGS;
 
 /**********************************************************//**
  * @struct WORD
@@ -77,7 +80,7 @@ typedef struct {
     int base[N_STATS];  ///< Constant base stats.
     int nTechs;         ///< Number of techniques.
     RANK rank;          ///< The rank of the word.
-    bool isReal;        ///< Whether this word is a real word.
+    WORD_FLAGS flags;	///< Word properties.
     
     // Current stats (recalculate on level up)
     int level;          ///< Level of the word
@@ -85,7 +88,6 @@ typedef struct {
     int exp;            ///< Current EXP
     int expNeed;        ///< Required experience to level up.
     int stat[N_STATS];  ///< Current stats
-    
 } WORD;
 
 /**********************************************************//**
@@ -99,16 +101,16 @@ typedef struct {
 extern bool word_Create(WORD *word, const char *text, int level);
 
 /**********************************************************//**
- * @brief Heal or damage the word
- * @param word: The word to read
- * @param delta: heal if > 0 otherwise damage
+ * @brief Heal or damage the word.
+ * @param word: The word to read.
+ * @param delta: heal if > 0 otherwise damage.
  **************************************************************/
 extern void word_ChangeCurrentHP(WORD *word, int delta);
 
 /**********************************************************//**
- * @brief Increase the EXP of the word and level up if needed
- * @param word: The word in question
- * @param delta: the amount of EXP earned
+ * @brief Increase the EXP of the word and level up if needed.
+ * @param word: The word in question.
+ * @param delta: the amount of EXP earned.
  **************************************************************/
 extern void word_ChangeExperience(WORD *word, int delta);
 
