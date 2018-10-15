@@ -1,6 +1,5 @@
 /**********************************************************//**
  * @file frame.h
- * @author Wes64
  * @brief Defines structs and drawing functions for user
  * interface graphics on the screen.
  **************************************************************/
